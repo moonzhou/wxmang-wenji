@@ -7,6 +7,6 @@ groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
 ---
 
-**5 篇**，2010-05-16 至 2015-09-23，属[《管理学》](/wxmang/management/)大类。
+**4 篇**，2010-05-16 至 2015-09-23，属[《管理学》](/wxmang/management/)大类。
 
 > 本页由 `_tools/scaffold.py` 自动生成，请勿手工编辑。

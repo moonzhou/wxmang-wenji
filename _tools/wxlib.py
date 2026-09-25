@@ -92,12 +92,21 @@ def is_wxmang(rec):
     return (rec.get("page_author") or "").strip() == "wxmang"
 
 
-def dedup(records, threshold=0.97, progress=None):
+def dedup(records, threshold=0.97, contain=0.95, progress=None):
     """
     两级去重：
       1. 精确：正文指纹完全相同
-      2. 近似：分桶 + SequenceMatcher ≥ threshold
-         （同一篇的搬家版本常有一两行差异，如「1、原材料」→「一、原材料」）
+      2. 近似：按长度排序 + 滑动窗口比对
+         a) 整体相似度 ≥ threshold → 同一篇的搬家版本
+            （如「1、原材料」→「一、原材料」这类一两行差异）
+         b) **包含关系**：短文有 ≥ contain 的比例被长文覆盖 → 同一篇的不同版本
+            （实测案例：「八宝饭」早期版比搬家版多出 3 条"技术控制要点"，
+              相似度只有 0.907 抓不到，但短的那份几乎整篇都在长的里面）
+
+    为什么按长度排序而不是按「前 N 字」分桶：
+        实测踩过坑——按前 60 字分桶时，一处差异正好落在第 41 字，
+        于是同一篇的两个版本被分进不同桶、**永远不会被比对**（相似度实为 0.9994）。
+
     返回：[[成员, …], …]，每组是一次"同一篇文章"，成员按日期升序。
     """
     exact = collections.OrderedDict()
@@ -108,40 +117,55 @@ def dedup(records, threshold=0.97, progress=None):
         exact.setdefault(key, []).append(r)
 
     firsts = list(exact.values())
-    buckets = collections.defaultdict(list)
-    for v in firsts:
-        k = v[0]["_clean"]
-        buckets[(norm(k)[:60], len(norm(k)) // 200)].append(v)
+    keys = [norm(v[0]["_clean"]) for v in firsts]
+    order = sorted(range(len(firsts)), key=lambda i: len(keys[i]))
+    n = len(keys)
 
-    groups = []
+    parent = list(range(n))
+
+    def find(x):
+        while parent[x] != x:
+            parent[x] = parent[parent[x]]
+            x = parent[x]
+        return x
+
+    def union(a, b):
+        ra, rb = find(a), find(b)
+        if ra != rb:
+            parent[max(ra, rb)] = min(ra, rb)
+
     done = 0
-    for arr in buckets.values():
-        used = [False] * len(arr)
-        for i in range(len(arr)):
-            if used[i]:
+    for pos in range(n):
+        i = order[pos]
+        a = keys[i]
+        window = max(0.30 * len(a), 80)
+        for q in range(pos + 1, n):
+            j = order[q]
+            b = keys[j]
+            if len(b) - len(a) > window:
+                break
+            sm = difflib.SequenceMatcher(None, a, b)
+            if sm.quick_ratio() < 0.85:
                 continue
-            grp = list(arr[i])
-            a = norm(arr[i][0]["_clean"])
-            for j in range(i + 1, len(arr)):
-                if used[j]:
-                    continue
-                b = norm(arr[j][0]["_clean"])
-                if abs(len(a) - len(b)) > max(0.06 * len(a), 40):
-                    continue
-                sm = difflib.SequenceMatcher(None, a, b)
-                if sm.quick_ratio() < 0.9:
-                    continue
-                if sm.ratio() >= threshold:
-                    grp += arr[j]
-                    used[j] = True
-            used[i] = True
-            groups.append(grp)
-        done += len(arr)
-        if progress:
-            progress(done, len(firsts))
+            if sm.ratio() >= threshold:
+                union(i, j)
+                continue
+            short = min(len(a), len(b))
+            if short < 200:
+                continue
+            covered = sum(bl.size for bl in sm.get_matching_blocks())
+            if covered / short >= contain:
+                union(i, j)
+        done += 1
+        if progress and (done % 50 == 0 or done == n):
+            progress(done, n)
+
+    grouped = collections.defaultdict(list)
+    for i in range(n):
+        grouped[find(i)] += firsts[i]
 
     out = []
-    for grp in groups:
+    for grp in grouped.values():
         grp.sort(key=lambda r: (r["page_date"], r["序号"]))
         out.append(grp)
     out.sort(key=lambda g: (g[0]["page_date"], g[0]["序号"]))
@@ -157,7 +181,8 @@ def build_corpus(meta=None, threshold=0.97, progress=None):
     groups = dedup(wx, threshold=threshold, progress=progress)
     corpus = []
     for i, grp in enumerate(groups, 1):
-        head = grp[0]
+        head = grp[0]                       # 最早的一条 → 归属与日期
+        body_src = max(grp, key=lambda r: len(r["_clean"]))   # 最完整的一条 → 正文
         corpus.append({
             "id": i,
             "title": pretty_title(head),
@@ -165,11 +190,12 @@ def build_corpus(meta=None, threshold=0.97, progress=None):
             "author": "wxmang",
             "category": head["list_cat"] or "未分类",
             "series": head["list_series"] or "",
-            "body_chars": len(head["_clean"]),
+            "body_chars": len(body_src["_clean"]),
+            "body_from": body_src["url"],
             "sources": [{"url": g["url"], "date": g["page_date"],
                          "raw_title": g["page_title"], "batch": g["batch"]} for g in grp],
             "dup_count": len(grp),
-            "body_clean": head["_clean"],
+            "body_clean": body_src["_clean"],
         })
     return corpus
 

@@ -110,3 +110,9 @@ SERIES_MIN = 3
 
 def slug_for_series(name, fallback=None):
     return SERIES_SLUG.get(name) or fallback or name
+
+
+def dir_safe(name):
+    """系列名可能含 / 或 \\（如「我的司机/身边人」），做目录名时必须替换，
+    否则会凭空多出一层目录。"""
+    return name.replace("/", "·").replace("\\", "·").strip().rstrip(".")

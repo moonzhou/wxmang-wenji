@@ -7,6 +7,6 @@ groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
 ---
 
-**7 篇**，2009-08-07 至 2012-02-21，属[《回忆与随笔》](/wxmang/memoir/)大类。
+**6 篇**，2009-08-07 至 2010-12-18，属[《回忆与随笔》](/wxmang/memoir/)大类。
 
 > 本页由 `_tools/scaffold.py` 自动生成，请勿手工编辑。

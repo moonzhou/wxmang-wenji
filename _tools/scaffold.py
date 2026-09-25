@@ -44,9 +44,7 @@ def write(path, text):
 
 
 def dir_safe(name):
-    """系列名可能含 / 或 \\（如「我的司机/身边人」），做目录名时必须替换，
-    否则会凭空多出一层目录。"""
-    return name.replace("/", "·").replace("\\", "·").strip().rstrip(".")
+    return tx.dir_safe(name)
 
 
 def main():
@@ -89,9 +87,7 @@ def main():
     L.append('description: "2009–2022 年 wxmang 公开发表的文章整理。非商业公益整理，'
              '版权归原作者所有。"')
     L.append("cascade:")
-    L.append("  excludeFromSearch: true   # 不进全站搜索索引（否则索引会被 562 篇全文撑爆）")
     L.append('  wx_author: "wxmang"')
-    L.append("excludeFromSearch: false     # 文集入口页本身要能被搜到，否则读者找不到这一栏")
     L.append("showTableOfContents: true")
     L.append("---")
     L.append("")
@@ -158,6 +154,7 @@ def main():
         L.append(f'title: "{name}"')
         L.append(f'url: "/wxmang/{cslug}/"')
         L.append('cascade:')
+        L.append("  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引")
         L.append(f'  wx_cat: "{name}"')
         L.append("groupByYear: false")
         L.append("showSummary: true")
