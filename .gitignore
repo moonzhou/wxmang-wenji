@@ -1,0 +1,10 @@
+# Python
+__pycache__/
+*.pyc
+
+# 操作系统
+.DS_Store
+Thumbs.db
+
+# 抓取缓存（原始 HTML 不随仓库分发，只留整理后的 Markdown）
+_tools/raw/
