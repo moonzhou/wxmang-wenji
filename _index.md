@@ -4,6 +4,7 @@ description: "2009–2022 年 wxmang 公开发表的文章整理。非商业公�
 cascade:
   excludeFromSearch: true   # 不进全站搜索索引（否则索引会被 562 篇全文撑爆）
   wx_author: "wxmang"
+excludeFromSearch: false     # 文集入口页本身要能被搜到，否则读者找不到这一栏
 showTableOfContents: true
 ---
 

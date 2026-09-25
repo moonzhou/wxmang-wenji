@@ -91,6 +91,7 @@ def main():
     L.append("cascade:")
     L.append("  excludeFromSearch: true   # 不进全站搜索索引（否则索引会被 562 篇全文撑爆）")
     L.append('  wx_author: "wxmang"')
+    L.append("excludeFromSearch: false     # 文集入口页本身要能被搜到，否则读者找不到这一栏")
     L.append("showTableOfContents: true")
     L.append("---")
     L.append("")
