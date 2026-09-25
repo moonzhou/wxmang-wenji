@@ -2,7 +2,7 @@
 title: "其他"
 url: "/wxmang/misc/"
 cascade:
-  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引
+  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引
   wx_cat: "其他"
 groupByYear: false
 showSummary: true

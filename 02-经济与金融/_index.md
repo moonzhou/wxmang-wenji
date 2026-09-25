@@ -2,7 +2,7 @@
 title: "经济与金融"
 url: "/wxmang/economics/"
 cascade:
-  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引
+  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引
   wx_cat: "经济与金融"
 groupByYear: false
 showSummary: true

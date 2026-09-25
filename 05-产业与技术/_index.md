@@ -2,7 +2,7 @@
 title: "产业与技术"
 url: "/wxmang/industry/"
 cascade:
-  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引
+  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引
   wx_cat: "产业与技术"
 groupByYear: false
 showSummary: true

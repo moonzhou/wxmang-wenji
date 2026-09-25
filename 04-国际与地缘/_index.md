@@ -2,7 +2,7 @@
 title: "国际与地缘"
 url: "/wxmang/geopolitics/"
 cascade:
-  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引
+  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引
   wx_cat: "国际与地缘"
 groupByYear: false
 showSummary: true

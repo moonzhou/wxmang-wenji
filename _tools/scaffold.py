@@ -5,7 +5,7 @@ scaffold.py —— 生成文集的目录骨架与各级 _index.md。
 
 为什么用脚本而不是手写：
     各级 _index.md 里要展示篇数、系列清单、时间跨度。手写必然随入库进度失真，
-    而 562 篇的规模下没人会记得去改。**计数由 corpus.json 派生，永远是准的。**
+    而全量规模下没人会记得去改。**计数由 corpus.json 派生，永远是准的。**
 
 生成物：
     _index.md                    文集总入口（大类导览 + 统计 + 版权摘要）
@@ -154,7 +154,7 @@ def main():
         L.append(f'title: "{name}"')
         L.append(f'url: "/wxmang/{cslug}/"')
         L.append('cascade:')
-        L.append("  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引")
+        L.append("  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引")
         L.append(f'  wx_cat: "{name}"')
         L.append("groupByYear: false")
         L.append("showSummary: true")

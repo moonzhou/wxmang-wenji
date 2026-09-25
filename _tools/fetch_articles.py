@@ -7,7 +7,7 @@ fetch_articles.py —— 抓正文并渲染为 Hugo 可读的 Markdown。
     python _tools/fetch_articles.py --series "标准化菜谱"      # 单个系列
     python _tools/fetch_articles.py --cat "生活与美食"          # 整个大类
     python _tools/fetch_articles.py --ids 1,2,3                # 指定序号
-    python _tools/fetch_articles.py --all                      # 全量（562 篇）
+    python _tools/fetch_articles.py --all                      # 全量
     python _tools/fetch_articles.py --series "标准化菜谱" --dry-run
 
 输出：
@@ -87,6 +87,7 @@ def build_md(entry, series_dir):
     p.append("---")
     p.append(f'title: "{entry["title"]}"')
     p.append(f'slug: "{entry["slug"]}"')
+    p.append(f'url: "{entry["url"]}"')   # ASCII，与栏目页同源
     p.append(f'date: {entry["date"]}')
     if series_dir:
         p.append(f'weight: {entry["weight"]}   # 系列内阅读顺序')
@@ -180,6 +181,11 @@ def main():
             key = (cat_dir, sd, c["slug"])
             n += 1
         used.add(key)
+
+        # 文章级 ASCII URL：与栏目页同源，避免链接暴露中文目录名
+        # （漏了这行，文章链接会变成 /wxmang/08-%E7%94%9F%E6%B4%BB... 那种）
+        c["url"] = tx.article_url(
+            cat_dir, tx.slug_for_series(c["series"]) if sd else None, c["slug"])
 
         rel_dir = os.path.join(cat_dir, sd) if sd else cat_dir
         fname = f"{c['weight']:03d}-{safe_name(c['title'], 50)}.md"

@@ -2,7 +2,7 @@
 title: "生活与美食"
 url: "/wxmang/life/"
 cascade:
-  excludeFromSearch: true   # 隔离：562 篇全文不进全站搜索索引
+  excludeFromSearch: true   # 隔离：文集全文不进全站搜索索引
   wx_cat: "生活与美食"
 groupByYear: false
 showSummary: true

@@ -112,6 +112,26 @@ def slug_for_series(name, fallback=None):
     return SERIES_SLUG.get(name) or fallback or name
 
 
+def article_url(cat_dir, series_slug, article_slug):
+    """文章页的 ASCII URL，与栏目页同源（大类 slug / 系列 slug）。
+
+    为什么文章也要显式写 url：
+        §2 的「仓库=中文目录 / URL=ASCII」只覆盖了 `_index.md`。文章若不写，
+        物理目录名会直接进 URL —— 正文链接变成
+        /wxmang/08-%E7%94%9F%E6%B4%BB%E4%B8%8E%E7%BE%8E%E9%A3%9F/%E6%A0%87...
+        读者从系列页点进去，URL 会突然从 /wxmang/life/standard-recipes/ 跳成
+        编码串。文章级 url 把这一层补上，两级链接就对齐了。
+        （article_slug 是中文标题，Hugo 会做 percent-encoding；中段全 ASCII，
+         分享出去至少是「可读的中文尾巴」，而非「一长串 %E5…」。）
+    """
+    _, cslug = CATEGORIES[cat_dir]
+    parts = ["wxmang", cslug]
+    if series_slug:
+        parts.append(series_slug)
+    parts.append(article_slug)
+    return "/" + "/".join(parts) + "/"
+
+
 def dir_safe(name):
     """系列名可能含 / 或 \\（如「我的司机/身边人」），做目录名时必须替换，
     否则会凭空多出一层目录。"""
