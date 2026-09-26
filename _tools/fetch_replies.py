@@ -289,9 +289,11 @@ def build_md(c, entries, qa_url, body_url):
     #    系列页用 `.Paginate (.Pages.ByWeight)` 分页时，QA 页会**占掉分页配额**
     #    却因为它们不是正文而显示为空档（实测：18 篇正文被切成 4 页，
     #    page/1 只排出 1 篇，page/3 反而列出 10 个 QA 链接）。
-    #    `_build.list: never` 让 QA 页彻底退出列表集合，`render: always`
+    #    `build.list: never` 让 QA 页彻底退出列表集合，`render: always`
     #    保证它仍照常生成 URL（正文页的「读者问答」入口要靠它）。
-    p.append("_build:")
+    # ⚠️ 键名是 `build`，不是 `_build`——Hugo 0.145 起把 `_build` 改名了，
+    #    旧名会直接让构建报错退出（实测 Hugo 0.166 报 deprecated 并中止）。
+    p.append("build:")
     p.append("  list: never       # 不进任何列表，不占系列页分页配额")
     p.append("  render: always    # 但仍生成页面（正文页要链过来）")
     p.append("---")
