@@ -21,6 +21,7 @@ import collections
 import io
 import json
 import os
+import re
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -47,9 +48,40 @@ def dir_safe(name):
     return tx.dir_safe(name)
 
 
+def date_range_of(dirpath):
+    """扫描目录下 md 的 date 字段，返回 (最早日期, 最晚日期, 篇数)。
+
+    专给答帖（10-答帖/）用：答帖以「原帖」为单位，不属于 corpus
+    （corpus 只收 wxmang 的独立文章），但它跨的年份要写进文集首页，
+    故单独扫目录取，而不是硬编码。
+    """
+    lo = hi = None
+    n = 0
+    if not os.path.isdir(dirpath):
+        return (None, None, 0)
+    for f in sorted(os.listdir(dirpath)):
+        if not f.endswith(".md") or f == "_index.md":
+            continue
+        try:
+            head = io.open(os.path.join(dirpath, f), encoding="utf-8").read(600)
+        except OSError:
+            continue
+        m = re.search(r'^date:\s*["\']?(\d{4}-\d{2}-\d{2})', head, re.M)
+        if not m:
+            continue
+        d = m.group(1)
+        n += 1
+        lo = d if lo is None or d < lo else lo
+        hi = d if hi is None or d > hi else hi
+    return (lo, hi, n)
+
+
 def main():
     corpus = json.load(io.open(os.path.join(META, "corpus.json"), encoding="utf-8"))
     total = len(corpus)
+
+    # 答帖不属于 corpus，其年份区间单独扫目录取
+    rep_lo, rep_hi, rep_n = date_range_of(os.path.join(REPO, "10-答帖"))
 
     # ---- 先定系列归属 ----
     # 系列归属由 taxonomy.SERIES_CAT 人工登记；未登记的系列回落为该系列
@@ -81,24 +113,32 @@ def main():
         tree.setdefault(cat_dir, collections.OrderedDict()).setdefault(key, []).append(c)
 
     # ---------- 文集总入口 ----------
+    # 首页只做导览（正文已有「按主题浏览 / 系列 / 文章年份分布」三块），
+    # 不再附加 Hugo 自动生成的子页面列表——那一层列的是「栏目」而非文章，
+    # 还会把答帖、整理原则与 9 大类混在一起按年分组。故改用专用 layout 渲染。
+    dates = sorted(c["date"] for c in corpus)
+    span_lo = min([dates[0][:10]] + ([rep_lo] if rep_lo else []))[:4]
+    span_hi = max([dates[-1][:10]] + ([rep_hi] if rep_hi else []))[:4]
+
     L = []
     L.append("---")
     L.append('title: "wxmang 文集"')
-    L.append('description: "2009–2022 年 wxmang 公开发表的文章整理。非商业公益整理，'
-             '版权归原作者所有。"')
+    L.append(f'description: "{span_lo}–{span_hi} 年 wxmang 公开的文字整理，'
+             f'含独立文章与答帖。非商业公益整理，版权归原作者所有。"')
     L.append("cascade:")
     L.append('  wx_author: "wxmang"')
     L.append("showTableOfContents: true")
+    L.append('layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染正文')
     L.append("---")
     L.append("")
-    dates = sorted(c["date"] for c in corpus)
-    L.append(f"这里收录 **{dates[0][:4]}–{dates[-1][:4]}** 年间 wxmang 公开发表的文章，"
-             f"经整理与去重后共 **{total}** 篇。")
+    L.append(f"这里收录 **{span_lo}–{span_hi}** 年间 wxmang 公开的文字："
+             f"独立文章 **{total}** 篇（{dates[0][:4]}–{dates[-1][:4]}），"
+             f"另有 **{rep_n}** 个原帖下的答帖（{rep_lo[:4]}–{rep_hi[:4]}）。")
     L.append("")
     L.append("## 说明")
     L.append("")
     L.append("- **非商业公益整理**，仅用于阅读与检索便利；**文章著作权归原作者所有**。")
-    L.append("- 每篇正文开头保留原始署名、首发日期与原文链接；权利人的下架请求会在 48 小时内处理。")
+    L.append("- 每篇正文开头保留原始署名、首发日期与原文链接；相关权利人的下架请求会在 48 小时内处理。")
     L.append("- 详见《[整理原则与版权说明](/wxmang/about/)》。")
     L.append("")
     L.append("## 按主题浏览")
@@ -126,7 +166,10 @@ def main():
         first = min(x["date"] for x in v)
         L.append(f"- [{s}](/wxmang/{cslug}/{sslug}/)（{len(v)} 篇，始于 {first[:4]}）")
     L.append("")
-    L.append("## 数据")
+    L.append("## 文章年份分布")
+    L.append("")
+    L.append(f"下表为 **{total}** 篇独立文章的年份分布；答帖（{rep_lo[:4]}–{rep_hi[:4]}）"
+             f"以原帖为单位，未纳入此表。")
     L.append("")
     y = collections.Counter(c["date"][:4] for c in corpus)
     L.append("| 年份 | 篇数 |")
