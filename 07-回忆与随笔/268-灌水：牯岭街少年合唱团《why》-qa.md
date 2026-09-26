@@ -1,7 +1,7 @@
 ---
 title: "灌水：牯岭街少年合唱团《why》（读者问答）"
-slug: "灌水牯岭街少年合唱团why-qa"
-url: "/wxmang/memoir/灌水牯岭街少年合唱团why-qa/"
+slug: "灌水牯岭街少年合唱团why-2-qa"
+url: "/wxmang/memoir/灌水牯岭街少年合唱团why-2-qa/"
 date: 2012-02-19
 wx_author: "wxmang"
 wx_cat: "回忆与随笔"
