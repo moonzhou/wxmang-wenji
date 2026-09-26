@@ -8,11 +8,12 @@ groupByYear: false
 showSummary: true
 ---
 
-**30 篇**，2010-11-17 至 2012-05-20。
+**75 篇**，2010-11-17 至 2015-05-23。
 
 ## 系列
 
-- [读《易经》心得](/wxmang/classics/i-ching/)（5 篇，2011–2012）
+- [读《易经》心得](/wxmang/classics/i-ching/)（44 篇，2011–2013）
+- [读《资治通鉴》心得](/wxmang/classics/zizhitongjian/)（6 篇，2013–2015）
 
 ## 散篇（25 篇）
 

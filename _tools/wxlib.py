@@ -36,6 +36,119 @@ RE_FORUM_META = re.compile(
 # 标题里的搬运/来源前缀，仅用于生成干净的展示标题，不改动原文
 RE_TITLE_PREFIX = re.compile(r"^\s*(【[^】]{0,8}】|（搬家帖?）|\(搬家帖?\)|转[:：]?|\[[^\]]{0,8}\])\s*")
 
+# ─────────────────────────────────────────────────────────────
+# 候选池扩展：署名不是 wxmang、但正文是他的页面（实测两类，判据分明）
+# ─────────────────────────────────────────────────────────────
+# 一、「代发帖」：他人代为转发，标题直接写明
+#     实测 48 页全部署名「思炎」，标题形如
+#       「代wxmang发帖【读易经心得】颐卦：如何益寿延年」
+#       「【代wxmang发帖】读《资治通鉴》心得：新君登基（一）」
+#       「代wxmang发帖—读《易经》心得—涣卦」
+#     内容为《读易经》心得系列 43 卦 + 《资治通鉴》新君登基 5 篇，约 55 万字。
+#     这批此前被「署名必须等于 wxmang」的判据整类挡在文集之外。
+RE_DAIFA_TITLE = re.compile(
+    r"代\s*(?:wxmang|忙总|文小芒)\s*发(?:帖|贴)|受.{0,6}委托.{0,4}发(?:帖|贴)")
+# ⚠️ 刻意不含「代wxmang发**图**」——实测该页（【代wxmang发图】配合中国重型机械…）
+#    正文是代发者写的配图说明（「这里的图片是忙总收集的…」），不是他的原文。
+
+# 二、「转载汇编页」：转载账号把「原文 + 该帖问答录」打包成一页
+#     实测 20 页全部署名「CleanRobot.A」，正文首行带作者元信息：
+#       「作者: wxmang    时间: 2012-2-19 21:52」
+#       「作者: 文小芒（wxmang）  发表时间: 2013/1/19 11:12:21」
+#     ⚠️ 整页正文 = 原文 + 网友问答录，直接入 corpus 会造出巨型重复篇，
+#        必须先由 slice_repost_body() 切掉问答录（见下）。
+RE_AUTH_HEAD = re.compile(
+    r"^\s*作者\s*[:：]\s*(?:文小芒\s*[（(]\s*)?wxmang\b", re.I)
+RE_META_LINE = re.compile(
+    r"^\s*(?:作者|标题|发表时间|时间)\s*[:：].*$|^\s*[-—–－=]{6,}\s*$")
+
+# 扁平对话流的发言人标记（与 fetch_replies 的 RE_SPK 同构，此处只需判界）
+RE_SPK_LINE = re.compile(r"^\s*\[[^\]\[\n]{1,24}\]\s*\(\s*\d{4}-\d{1,2}-\d{1,2}")
+RE_SPK_ANY = re.compile(r"\[[^\]\[\n]{1,24}\]\s*\(\s*\d{4}-\d{1,2}-\d{1,2}[^)]*\)")
+
+# 「作者: 某人    时间: …」——转载汇编页的**第二种**发言人标记
+# （与扁平流的 `[某人] (时间)` 并存；实测「懒人版蹄髈」页有 41 处）
+RE_AUTH_ANY = re.compile(
+    r"^\s*作者\s*[:：]?\s*[^\s:：]{1,20}\s*(?:发表?)?时间\s*[:：]", re.I)
+# 「网友问答录」分隔标签（实测「当务之急…」「什么因素会影响我们的智力」两页用它）
+RE_QA_LABEL = re.compile(
+    r"^\s*[-—–－=]{0,}\s*(?:网友问答录|网友问答|问答录|读者问答录)\s*[:：]?\s*$")
+# 一篇正文的结束边界（按实测的三种形态统一判界）
+RE_ARTICLE_END = re.compile(
+    r"^(?:\s*\[[^\]\[\n]{1,24}\]\s*\(\s*\d{4}-\d{1,2}-\d{1,2}"      # [某人] (时间)
+    r"|\s*作者\s*[:：]?\s*[^\s:：]{1,20}\s*(?:发表?)?时间\s*[:：]"      # 作者: 某人 时间:
+    r"|\s*[-—–－=]*\s*(?:网友问答录|网友问答|问答录|读者问答录)\s*[:：]?\s*$"  # 问答录标签
+    r")", re.I)
+
+
+# 「作者: 某人 时间: …」的作者名（用于区分 wxmang 本人的段与他人发言）
+RE_AUTH_NAME = re.compile(
+    r"^\s*作者\s*[:：]?\s*([^\s:：]{1,20})\s*(?:发表?)?时间\s*[:：]", re.I)
+WX_NAME_HINT = re.compile(r"wxmang|文小芒", re.I)
+
+
+def _is_wx_name(name):
+    return bool(WX_NAME_HINT.search(name or ""))
+
+
+def split_repost_articles(rec, min_chars=300):
+    """转载汇编页 → 拆成若干「候选正文」（每篇一段）。
+
+    实测结构（CleanRobot.A 20 页，三种形态并存）：
+      · 单篇页   `作者: wxmang  时间: …` → 正文 → 尾部问答录
+                 （问答录用 `[某人] (时间)` 或 `作者: 某人  时间: …` 或 `网友问答录：`）
+      · 合集页   多个 `作者: 文小芒（wxmang）发表时间: …` 标记，每标记起一篇
+                 （如「中国农村改革的几个瞬间系列 共7篇」）
+      · 混排页   正文之后紧跟问答录，两者**同用一种标记**（如「懒人版蹄髈」页
+                 正文与网友问答都用 `作者: 名字  时间: …`）
+
+    切分三步：
+      ① 按「作者元信息行」切段，每段记下署名；
+      ② 从第一个 **wxmang 署名**的段开始连续收集，**一旦遇到非 wxmang 署名的段即停**
+         —— 这就是「混排页」正/答的天然分界（网友一出现，正文即结束）；
+      ③ 段内再切掉 `[某人] (时间)` / `网友问答录：` 之后的内容。
+
+    ⚠️ 不切的后果：整页 2.7 万字入 corpus，与已有的 3111 字原篇构成包含关系，
+       dedup 取最长者作正文 → 原篇正文被替换成带问答录的大杂烩。
+    """
+    lines = clean_body(rec).splitlines()
+    marks = []
+    for i, ln in enumerate(lines):
+        m = RE_AUTH_NAME.match(ln)
+        if m:
+            marks.append((i, m.group(1).strip()))
+    if not marks:
+        marks = [(0, "")]
+
+    # 定位第一个 wxmang 署名段
+    start_k = next((k for k, (_, nm) in enumerate(marks) if _is_wx_name(nm)), 0)
+    segs, k = [], start_k
+    while k < len(marks):
+        if k > start_k and not _is_wx_name(marks[k][1]):
+            break                          # 非 wxmang 署名出现 → 问答录开始，停止
+        s = marks[k][0]
+        e = marks[k + 1][0] if k + 1 < len(marks) else len(lines)
+        seg = lines[s:e]
+        j = 0
+        while j < len(seg) and (not seg[j].strip() or RE_META_LINE.match(seg[j])):
+            j += 1
+        out = []
+        for ln in seg[j:]:
+            if RE_ARTICLE_END.match(ln):
+                break
+            out.append(ln)
+        t = "\n".join(out).strip()
+        if len(t) >= min_chars:
+            segs.append(t)
+        k += 1
+    return segs
+
+
+def slice_repost_body(rec):
+    """兼容入口：转载汇编页取最长的一篇候选正文（单篇页即全文）。"""
+    b = split_repost_articles(rec)
+    return max(b, key=len) if b else ""
+
 
 def load_meta(path=META_JSON):
     return json.load(io.open(path, encoding="utf-8"))
@@ -82,14 +195,55 @@ def norm(t):
     return re.sub(r"\s+", "", t)
 
 
+# 代发/转载的标题前缀（可能叠加出现，如「代wxmang发帖-读《易经》心得—涣卦」）
+RE_DAIFA_LEAD = re.compile(
+    r"^\s*(?:【[^】]{0,20}代\s*(?:wxmang|忙总|文小芒)\s*发[帖贴图][^】]{0,20}】"
+    r"|代\s*(?:wxmang|忙总|文小芒)\s*发[帖贴图])\s*[-—–－~～:：]?\s*")
+RE_REPOST_LEAD = re.compile(r"^\s*wxmang\s*[-—–－]\s*", re.I)
+
+
 def pretty_title(rec):
-    """展示用标题：去掉【原创】/（搬家帖）这类前缀。"""
-    t = RE_TITLE_PREFIX.sub("", rec["page_title"] or rec["list_title"]).strip()
+    """展示用标题：去掉【原创】/（搬家帖）/「代wxmang发帖」这类前缀。"""
+    t = rec["page_title"] or rec["list_title"]
+    for _ in range(4):
+        before = t
+        t = RE_DAIFA_LEAD.sub("", t)
+        t = RE_REPOST_LEAD.sub("", t)
+        t = RE_TITLE_PREFIX.sub("", t)
+        t = t.strip()
+        if t == before:
+            break
     return t or rec["page_title"] or rec["list_title"]
 
 
 def is_wxmang(rec):
     return (rec.get("page_author") or "").strip() == "wxmang"
+
+
+def page_kind(rec):
+    """判断该页承载的是不是 wxmang 的正文，以及属于哪一类。
+
+    'self'   页面署名就是 wxmang（773 页）
+    'daifa'  标题写明「代wxmang发帖」，内容是他的（实测 48 页，署名思炎）
+    'repost' 转载账号的汇编页，正文首行带「作者: wxmang」元信息（实测 20 页，署名 CleanRobot.A）
+    None     不属于以上任何一类
+
+    ⚠️ 判据只用**页面自带的结构性证据**（署名 / 标题声明 / 正文内的作者元信息），
+       不靠标题关键词猜内容——后者实测准确率仅 52.5%（见 fetch_meta.py 文档串）。
+    """
+    if is_wxmang(rec):
+        return "self"
+    t = (rec.get("page_title") or "") + " " + (rec.get("list_title") or "")
+    if RE_DAIFA_TITLE.search(t):
+        return "daifa"
+    if RE_AUTH_HEAD.search(clean_body(rec)[:400]):
+        return "repost"
+    return None
+
+
+def article_text(rec):
+    """该页承载的「正文」，按页类型选路。"""
+    return slice_repost_body(rec) if page_kind(rec) == "repost" else clean_body(rec)
 
 
 # ─────────────────────────────────────────────────────────────
@@ -289,28 +443,222 @@ def dedup(records, threshold=0.97, contain=0.95, progress=None):
     return out
 
 
-def build_corpus(meta=None, threshold=0.97, progress=None):
-    """产出权威文集：只收真实署名 wxmang、去重后的唯一篇目。"""
+LAST_DROPPED_REPOST = []
+LAST_MERGED_REPOST = []
+LAST_MERGED_TITLE = []
+
+
+def _title_sim(a, b):
+    return difflib.SequenceMatcher(None, a or "", b or "").ratio()
+
+
+def _ngram_set(texts, n=16):
+    """把若干正文压成 n-gram 集合（用于覆盖检测）。
+
+    ⚠️ 必须 **step=1**（每个位置都取）。曾用 step=3 省内存，结果与
+       `_cover_ratio` 的 step=2 扫描叠加，再加上两段文本本身存在偏移
+       （实测「新君登基」页与思炎版正文偏 34 字），大量 gram 落在
+       错位的采样点上——真实命中率 0.971 被算成 0.325。
+       改为全位置取样 + 哈希存储，内存约 150MB，可接受。
+    """
+    g = set()
+    for t in texts:
+        s = norm(t)
+        for i in range(len(s) - n + 1):
+            g.add(hash(s[i:i + n]))
+    return g
+
+
+def _cover_ratio(text, grams, n=16, step=2):
+    """text 有多少比例的内容能在 grams 里找到。"""
+    s = norm(text)
+    if len(s) < n:
+        return 0.0
+    hit = tot = 0
+    for i in range(0, len(s) - n + 1, step):
+        tot += 1
+        if hash(s[i:i + n]) in grams:
+            hit += 1
+    return hit / tot if tot else 0.0
+
+
+def drop_covered(cands, refs, thresh=0.90, progress=None):
+    """剔除「已被参照篇目覆盖」的候选。
+
+    为什么需要：dedup 的近似比对带**长度窗口**（`window = 30% 长度`，为控制
+    O(n²) 成本），于是「一篇 2.1 万字的合集」与「构成它的 5 篇 2 千字单篇」
+    因长度差超窗而**从不比对**，重复篇照样进 corpus。实测样本：
+    「读《资治通鉴》心得：新君登基」——思炎代发的 5 篇（合计 2.24 万字）
+    与 CleanRobot.A 的合集页（2.14 万字）本是一回事，却各占一条。
+    这里用与长度无关的 n-gram 覆盖率兜底，只作用于转载页（数量少、成本低）。
+    """
+    grams = _ngram_set([r["_clean"] for r in refs])
+    out, dropped = [], []
+    for i, c in enumerate(cands):
+        r = _cover_ratio(c["_clean"], grams)
+        (dropped if r >= thresh else out).append((c, r))
+        if progress and (i % 5 == 0 or i == len(cands) - 1):
+            progress(i + 1, len(cands))
+    return [c for c, _ in out], [(c, r) for c, r in dropped]
+
+
+def _title_key(rec):
+    """标题归一化键：剥离前缀、括注序号与全部标点，用于「同题」归组。"""
+    t = pretty_title(rec)
+    t = re.sub(r"[（(]\s*[一二三四五六七八九十百\d]+\s*[)）]", "", t)
+    t = re.sub(r"[《》【】（）()\[\]「」『』：:，,。、·\-—–－~～\s]", "", t)
+    return t
+
+
+def _group_by_title(cands):
+    """按标题归组：归一化键**相同**，或一键**包含**另一键（短键 ≥5 字）。
+
+    为什么要包含匹配：同一篇在不同来源的标题常差一个系列前缀——
+    「屯卦：创业的故事」（2011 原发）与「读《易经》心得：屯卦：创业的故事」
+    （2011-07 搬家版），归一化键不同却指同一篇。按长度降序遍历 + 单次归组，
+    保证每篇只进一个组，且短键依附于最长的父键。
+    """
+    ks = sorted(((c, _title_key(c)) for c in cands), key=lambda x: -len(x[1]))
+    groups, assigned = [], set()
+    for c, k in ks:
+        if id(c) in assigned or not k:
+            continue
+        grp = [c]
+        assigned.add(id(c))
+        for c2, k2 in ks:
+            if id(c2) in assigned or len(k2) < 5:
+                continue
+            if k2 in k or k in k2:
+                grp.append(c2)
+                assigned.add(id(c2))
+        groups.append(grp)
+    return groups
+
+
+def merge_same_title(cands, cover_th=0.90):
+    """同标题的「长版 ⊃ 短版」强制合并。
+
+    为什么 dedup 不够：dedup 的近似比对带**长度窗口**（`window = 30% 长度`，
+    为控制 O(n²) 成本），长度差超窗的对**从不比对**。实测漏网样本：
+      「屯卦：创业的故事」2011 版 5601 字 与 2012 代发版 10144 字，
+      标题逐字相同、后者完整包含前者，却因长度差 4543 > 1680 各占一条。
+    这里只对**同标题**组做与长度无关的 n-gram 覆盖检测，成本可控。
+
+    合并方向：正文取长版（更完整），元数据（标题/日期/分类）仍取原短版——
+    转载/代发页的日期是**搬运日**，不是写作日，不该覆盖原始发表日。
+    """
+    drop_ids, merged = set(), []
+    for arr in _group_by_title(cands):
+        if len(arr) < 2:
+            continue
+        # 键完全相同（同题，仅编号/前缀不同）→ 总是合并；
+        # 键只是包含关系（如「童年碎影」与其分篇）→ 只在涉及转载/代发页时处理，
+        # 旧 corpus 内部既有的合集结构不在本次口径变更范围。
+        same_key = len({_title_key(c) for c in arr}) == 1
+        if not same_key and not any(c["_kind"] != "self" for c in arr):
+            continue
+        arr = sorted(arr, key=lambda r: len(r["_clean"]))
+        for i in range(len(arr) - 1, 0, -1):
+            big = arr[i]
+            if id(big) in drop_ids:
+                continue
+            gb = _ngram_set([big["_clean"]])
+            for j in range(i - 1, -1, -1):
+                small = arr[j]
+                if id(small) in drop_ids:
+                    continue
+                if len(big["_clean"]) < len(small["_clean"]) * 1.05:
+                    continue
+                if _cover_ratio(small["_clean"], gb) >= cover_th:
+                    small["_extra_sources"] = small.get("_extra_sources", []) + [big["url"]]
+                    small["_clean"] = big["_clean"]
+                    drop_ids.add(id(big))
+                    merged.append((small, big))
+                    break
+    return [c for c in cands if id(c) not in drop_ids], merged
+
+
+def build_corpus(meta=None, threshold=0.97, progress=None, expand=True):
+    """产出权威文集：去重后的唯一篇目。
+
+    expand=True（默认）时候选池为三类页面之并：
+        self   773 页本人署名
+        daifa   48 页「代wxmang发帖」（思炎代发，《读易经》心得 43 卦等）
+        repost  20 页转载汇编页（CleanRobot.A；正文先切掉其后的问答录）
+    三类之间靠 dedup 的精确/近似/包含三重判据合并——即「用正文去重」，
+    同一篇的新旧版本（如屯卦 2011 版与 2012 代发版）归并为一条。
+    """
     meta = meta if meta is not None else load_meta()
-    wx = [dict(r) for r in meta if is_wxmang(r)]
-    for r in wx:
-        r["_clean"] = clean_body(r)
+    wx = []
+    for m in meta:
+        k = page_kind(m)
+        if not k or (k != "self" and not expand):
+            continue
+        if k == "repost":
+            # 汇编页可能承载多篇原文（如「张厂长的故事123」= 3 篇）
+            for j, txt in enumerate(split_repost_articles(m), 1):
+                if not txt:
+                    continue
+                d = dict(m)
+                d["_kind"], d["_part"], d["_clean"] = k, j, txt
+                wx.append(d)
+        else:
+            d = dict(m)
+            d["_kind"], d["_part"], d["_clean"] = k, 0, clean_body(m)
+            if d["_clean"]:
+                wx.append(d)
+    if expand:
+        # 转载页（repost）先与本人署名/代发篇目做覆盖比对，剔掉整段重复的
+        refs = [d for d in wx if d["_kind"] in ("self", "daifa")]
+        reps = [d for d in wx if d["_kind"] == "repost"]
+        if reps:
+            kept, dropped = drop_covered(reps, refs)
+            del LAST_DROPPED_REPOST[:]
+            LAST_DROPPED_REPOST.extend(dropped)
+            del LAST_MERGED_REPOST[:]
+            rest = []
+            for c in kept:
+                # 「合集页 vs 单篇」：repost 比某篇 ref 更长、且完整包含它 →
+                # 同一篇的不同版本，正文换成更全的 repost 版，元数据仍取原篇。
+                # 实测「一篇可以用来观察中国民营企业发展的研究报告」页
+                # = 报告1（9353 字，已收）+ 报告 2/3（约 1.6 万字，未收）。
+                cand = [r for r in refs
+                        if len(r["_clean"]) <= len(c["_clean"])
+                        and _title_sim(r["page_title"], c["page_title"]) >= 0.45]
+                cg = _ngram_set([c["_clean"]]) if cand else None
+                subs = [(r, _cover_ratio(r["_clean"], cg)) for r in cand]
+                subs = [(r, v) for r, v in subs if v >= 0.90]
+                if len(subs) == 1:
+                    r = subs[0][0]
+                    r["_extra_sources"] = r.get("_extra_sources", []) + [c["url"]]
+                    r["_clean"] = c["_clean"]
+                    LAST_MERGED_REPOST.append((r, c, subs[0][1]))
+                    continue
+                rest.append(c)
+            wx = [d for d in wx if d["_kind"] != "repost"] + rest
+    # 同标题的长短版本合并（dedup 的长度窗口会漏掉这类）
+    wx, same_title_merged = merge_same_title(wx)
+    del LAST_MERGED_TITLE[:]
+    LAST_MERGED_TITLE.extend(same_title_merged)
     groups = dedup(wx, threshold=threshold, progress=progress)
     corpus = []
     for i, grp in enumerate(groups, 1):
         head = grp[0]                       # 最早的一条 → 归属与日期
         body_src = max(grp, key=lambda r: len(r["_clean"]))   # 最完整的一条 → 正文
+        kinds = [g["_kind"] for g in grp]
         corpus.append({
             "id": i,
             "title": pretty_title(head),
             "date": head["page_date"],
             "author": "wxmang",
+            "page_kind": "self" if "self" in kinds else kinds[0],
             "category": head["list_cat"] or "未分类",
             "series": head["list_series"] or "",
             "body_chars": len(body_src["_clean"]),
             "body_from": body_src["url"],
             "sources": [{"url": g["url"], "date": g["page_date"],
-                         "raw_title": g["page_title"], "batch": g["batch"]} for g in grp],
+                         "raw_title": g["page_title"], "batch": g["batch"],
+                         "kind": g["_kind"], "part": g.get("_part", 0)} for g in grp],
             "dup_count": len(grp),
             "body_clean": body_src["_clean"],
         })

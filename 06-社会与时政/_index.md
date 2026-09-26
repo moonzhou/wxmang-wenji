@@ -12,7 +12,7 @@ showSummary: true
 
 ## 系列
 
-- [中国农村改革](/wxmang/society/rural-reform/)（4 篇，2011–2011）
+- [中国农村改革](/wxmang/society/rural-reform/)（4 篇，2011–2012）
 
 ## 散篇（17 篇）
 

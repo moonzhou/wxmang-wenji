@@ -8,15 +8,15 @@ groupByYear: false
 showSummary: true
 ---
 
-**54 篇**，2009-07-22 至 2018-12-13。
+**52 篇**，2009-07-22 至 2018-12-13。
 
 ## 系列
 
 - [我的司机/身边人](/wxmang/memoir/people-around-me/)（6 篇，2009–2010）
 - [读报读资料笔记](/wxmang/memoir/reading-notes/)（6 篇，2010–2015）
-- [读书笔记](/wxmang/memoir/book-notes/)（6 篇，2011–2016）
+- [读书笔记](/wxmang/memoir/book-notes/)（5 篇，2011–2016）
 
-## 散篇（36 篇）
+## 散篇（35 篇）
 
 未归入系列的文章，按时间倒序列在下方。
 

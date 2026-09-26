@@ -15,7 +15,7 @@ showSummary: true
 - [货币政策回顾](/wxmang/economics/monetary-policy/)（5 篇，2010–2012）
 - [海外投资](/wxmang/economics/overseas-investment/)（3 篇，2009–2012）
 - [我经济政策分析的方法](/wxmang/economics/economic-analysis-method/)（3 篇，2010–2012）
-- [滞胀与反通胀](/wxmang/economics/stagflation/)（3 篇，2010–2011）
+- [滞胀与反通胀](/wxmang/economics/stagflation/)（3 篇，2011–2011）
 
 ## 散篇（29 篇）
 

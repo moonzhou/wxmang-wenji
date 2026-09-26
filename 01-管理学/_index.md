@@ -8,7 +8,7 @@ groupByYear: false
 showSummary: true
 ---
 
-**115 篇**，2009-07-08 至 2018-12-15。
+**113 篇**，2009-07-08 至 2018-12-15。
 
 ## 系列
 
@@ -18,7 +18,7 @@ showSummary: true
 - [项目管理](/wxmang/management/project-management/)（4 篇，2010–2016）
 - [管理科学简介](/wxmang/management/management-science/)（4 篇，2010–2015）
 
-## 散篇（60 篇）
+## 散篇（58 篇）
 
 未归入系列的文章，按时间倒序列在下方。
 

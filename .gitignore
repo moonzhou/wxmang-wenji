@@ -8,3 +8,7 @@ Thumbs.db
 
 # 抓取缓存（原始 HTML 不随仓库分发，只留整理后的 Markdown）
 _tools/raw/
+
+# 中间产物与旧版备份（去重/重编号过程中的临时文件与孤儿备份，不随仓库分发）
+# 覆盖 _meta/_orphans/、_meta/_orphans_others/、_meta/_run_*.log、_meta/_*.txt 等
+_meta/_*

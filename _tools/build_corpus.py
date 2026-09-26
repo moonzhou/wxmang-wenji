@@ -31,8 +31,14 @@ def main():
             print(f"  去重比对 … {done}/{total}", flush=True)
 
     meta = wxlib.load_meta()
-    print(f"[build_corpus] 元数据 {len(meta)} 条；仅取真实署名 wxmang 的条目")
+    print(f"[build_corpus] 元数据 {len(meta)} 条；候选池 = 本人署名 + 代发帖 + 转载页")
+    print("                （判据见 wxlib.page_kind：署名 / 标题声明 / 正文作者元信息）")
     corpus = wxlib.build_corpus(meta, progress=prog)
+    import collections as _c
+    kk = _c.Counter(c["page_kind"] for c in corpus)
+    print(f"[build_corpus] 去重后 {len(corpus)} 篇；来源构成 "
+          f"{dict(kk)}；转载页剔除 {len(wxlib.LAST_DROPPED_REPOST)} / "
+          f"合并 {len(wxlib.LAST_MERGED_REPOST) + len(wxlib.LAST_MERGED_TITLE)}")
 
     # ---- SOURCES.csv ----
     p = os.path.join(META_DIR, "SOURCES.csv")

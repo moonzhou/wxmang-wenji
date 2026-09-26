@@ -50,6 +50,7 @@ SERIES_SLUG = {
     "标准化菜谱":          "standard-recipes",
     "中国重型机械":         "heavy-machinery",
     "读《易经》心得":       "i-ching",
+    "读《资治通鉴》心得":     "zizhitongjian",
     "遵义名小吃":          "zunyi-snacks",
     "我的司机/身边人":      "people-around-me",
     "货币政策回顾":         "monetary-policy",
@@ -91,6 +92,7 @@ SERIES_CAT = {
     "我经济政策分析的方法":    "02-经济与金融",
     # 03 传统文化
     "读《易经》心得":       "03-传统文化",
+    "读《资治通鉴》心得":     "03-传统文化",
     # 05 产业与技术
     "中国重型机械":         "05-产业与技术",
     # 06 社会与时政
