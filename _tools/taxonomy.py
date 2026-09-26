@@ -10,6 +10,8 @@ taxonomy.py —— 文集目录 → ASCII URL 的映射表。
 新增系列时在这里补一行即可；不需要动任何模板。
 """
 
+import re
+
 # 大类：目录名 → (显示名, URL slug)
 CATEGORIES = {
     "01-管理学":   ("管理学",     "management"),
@@ -136,3 +138,19 @@ def dir_safe(name):
     """系列名可能含 / 或 \\（如「我的司机/身边人」），做目录名时必须替换，
     否则会凭空多出一层目录。"""
     return name.replace("/", "·").replace("\\", "·").strip().rstrip(".")
+
+
+# URL slug：只留字母数字与汉字。
+#
+# 为什么与文件名分开：中文标题里的全角标点（？：、，。）进了 slug 会被
+# percent-encode 成一串 %EF%BC%9F，分享出去很难看；且全角「？」在某些
+# 解析器里可能被误当查询串分隔符。文件名保留标点（可读性好），URL 只留实词。
+#
+# ⚠️ fetch_articles.py 与 fetch_replies.py 必须共用本函数——两边各自实现过
+#    一次，一次改动就会让正文与问答页的 URL 分叉。
+RE_SLUG_KEEP = re.compile(r"[^0-9A-Za-z\u4e00-\u9fff]+")
+
+
+def slug_name(s, limit=50):
+    s = RE_SLUG_KEEP.sub("", s or "")
+    return s[:limit] or "untitled"

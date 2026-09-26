@@ -53,6 +53,11 @@ def safe_name(s, limit=60):
     return s[:limit].strip() or "untitled"
 
 
+# URL 用的 slug 统一走 taxonomy.slug_name()——正文页与问答页必须同源，
+# 否则一处改动会让两者的 URL 分叉。
+slug_name = tx.slug_name
+
+
 def escape_md(line):
     """转义行首会被 Markdown 当成语法的字符。"""
     return RE_MD_LEAD.sub(lambda m: m.group(1) + "\\" + m.group(2), line)
@@ -82,7 +87,7 @@ def rebuild_paragraphs(text):
     return [escape_md(p) for p in paras if p.strip()]
 
 
-def build_md(entry, series_dir):
+def build_md(entry, series_dir, qa_url=None):
     p = []
     p.append("---")
     p.append(f'title: "{entry["title"]}"')
@@ -95,6 +100,8 @@ def build_md(entry, series_dir):
     p.append(f'wx_cat: "{entry["cat_name"]}"')
     if entry["series"]:
         p.append(f'wx_series: "{entry["series"]}"')
+    if qa_url:
+        p.append(f'qa_url: "{qa_url}"   # 配套问答页（由 fetch_replies.py 生成）')
     p.append(f'original_date: {entry["date"]}')
     p.append(f'source_url: "{entry["sources"][0]["url"]}"')
     if len(entry["sources"]) > 1:
@@ -116,6 +123,11 @@ def build_md(entry, series_dir):
     #    漏掉空行会让整篇正文塌成一大坨（实测踩过）。
     p.append("\n\n".join(rebuild_paragraphs(entry["body_clean"])))
     p.append("")
+    if qa_url:
+        p.append("---")
+        p.append("")
+        p.append(f'**读者问答**：[本文的读者讨论与作者回应]({qa_url})')
+        p.append("")
     return "\n".join(p)
 
 
@@ -171,13 +183,13 @@ def main():
         sd = series_dir_of.get(c["series"]) if c["series"] in series_dir_of else None
         c["cat_name"] = cat_name
         c["weight"] = order_of.get(c["id"], c["id"])
-        c["slug"] = safe_name(c["title"], 50)
+        c["slug"] = slug_name(c["title"], 50)
 
         # 同目录内 slug 去重
         key = (cat_dir, sd, c["slug"])
         n = 2
         while key in used:
-            c["slug"] = f"{safe_name(c['title'], 45)}-{n}"
+            c["slug"] = f"{slug_name(c['title'], 45)}-{n}"
             key = (cat_dir, sd, c["slug"])
             n += 1
         used.add(key)
@@ -188,9 +200,15 @@ def main():
             cat_dir, tx.slug_for_series(c["series"]) if sd else None, c["slug"])
 
         rel_dir = os.path.join(cat_dir, sd) if sd else cat_dir
-        fname = f"{c['weight']:03d}-{safe_name(c['title'], 50)}.md"
+        base = f"{c['weight']:03d}-{safe_name(c['title'], 50)}"
+        fname = base + ".md"
         path = os.path.join(REPO, rel_dir, fname)
-        md = build_md(c, sd)
+        # 若配套问答页已存在（fetch_replies.py 先跑），挂上入口
+        qa_url = None
+        if os.path.exists(os.path.join(REPO, rel_dir, base + "-qa.md")):
+            qa_url = tx.article_url(cat_dir, tx.slug_for_series(c["series"]) if sd else None,
+                                    c["slug"] + "-qa")
+        md = build_md(c, sd, qa_url)
         if args.dry_run:
             print(f"[dry-run] {rel_dir}/{fname}  ({len(c['body_clean'])} 字)")
         else:

@@ -92,6 +92,105 @@ def is_wxmang(rec):
     return (rec.get("page_author") or "").strip() == "wxmang"
 
 
+# ─────────────────────────────────────────────────────────────
+# 回复区专用净化（正文的 clean_body 不够用，回复里混的东西更多）
+# 全部来自 28355 个 REPLY 块的实测统计，不是拍脑袋列的。
+# ─────────────────────────────────────────────────────────────
+
+# 论坛功能行 / 导航行：混在回复文本里，不是作者原话。
+#   返回索引页 665 次、链接出处 258 次、通宝推：… 、关键词(Tags): … 、删除
+REPLY_JUNK_LINE = re.compile(
+    r"^\s*(?:返回索引页|返回列表|链接出处|删除删除|删除"
+    r"|通宝推\s*[:：].*|关键词\(Tags\)\s*[:：].*|\[/?quote[^\]]*\])\s*$"
+)
+
+# BBCode 引用：部分老帖的引用没被转成 <blockquote>，原文留下了 [quote]…[/quote]。
+# 实测样本：`[quote …[/quote] 1、臀尖肉就是猪屁股…` ← 前段是网友的话，后段才是 wxmang 的。
+RE_BBQ_PAIR = re.compile(r"\[quote[^\]]*\].*?\[/quote\]", re.S | re.I)
+RE_BBQ_CLOSE = re.compile(r"\[/quote\]", re.I)
+RE_BBQ_OPEN = re.compile(r"\[quote[^\]]*\]?", re.I)
+RE_BBQ_ANY = re.compile(r"\[/?quote", re.I)
+
+
+def strip_bbcode_quote(text):
+    """剥掉 BBCode 形式的引用。
+
+    为什么要单独处理：<blockquote> 只覆盖了一部分引用，另一部分老帖
+    留下的是 BBCode 原文。不剥就会把网友的话当成 wxmang 的收进来——
+    正是 521 条误报的同类错误。
+
+    边界判断（依据实测样本，引用总是出现在回复**开头**）：
+      - 成对的 `[quote]…[/quote]` → 整块删除，保留两侧文字
+      - 只剩孤立的 `[/quote]`  → 它之前是被引用的，丢弃之前
+      - 只剩孤立的 `[quote]`   → 它之后是被引用的，丢弃之后
+
+    ⚠️ 守卫必须同时认 `[quote` 与 `[/quote]`。曾写成 `"[quote" not in text`，
+       而 `[/quote]` 里并**不**含子串 `[quote`（中间隔着 `/`），于是含 `[/quote]`
+       的文本被原样放行——实测导致 002/014 两篇把网友的话收成了 wxmang 的答。
+    """
+    if not RE_BBQ_ANY.search(text):
+        return text
+    t = RE_BBQ_PAIR.sub(" ", text)
+    low = t.lower()
+    if "[/quote]" in low:
+        t = t[low.rfind("[/quote]") + len("[/quote]"):]
+    m = RE_BBQ_OPEN.search(t)
+    if m:
+        t = t[:m.start()]
+    return t
+
+
+def clean_reply_text(text):
+    """回复文本 → 剥 BBCode 引用 + 剔除论坛功能行。"""
+    t = strip_bbcode_quote(text)
+    return "\n".join(
+        ln for ln in t.splitlines()
+        if ln.strip() and not REPLY_JUNK_LINE.match(ln)
+    ).strip()
+
+
+# ── <blockquote> 的剥离必须支持嵌套 ───────────────────────────
+# 踩过的坑：用非贪婪正则 `<blockquote>.*?</blockquote>` 时，遇到嵌套
+#     <blockquote>外 <blockquote>内</blockquote> 中间</blockquote> 真实内容
+# 只会匹配到**内层**的闭合，剥完剩下 `中间</blockquote> 真实内容` ——
+# 而「中间」那截是**引用的尾巴**（往往是 wxmang 自己的话），
+# 于是它会被当成网友的发言收进"问"，或反过来混进"答"。
+# 实测样本：ashok 的 SAY 里混入了 wxmang 上一轮的回复文字。
+# 因此改用**标签配对计数**，一次剥掉整个最外层块，循环到没有为止。
+RE_BQ_OPEN = re.compile(r"<blockquote[^>]*>", re.I)
+RE_BQ_CLOSE = re.compile(r"</blockquote\s*>", re.I)
+
+
+def strip_blockquotes(html, rounds=6):
+    """删除所有最外层的 <blockquote>…</blockquote>（正确处理嵌套）。"""
+    for _ in range(rounds):
+        if not RE_BQ_OPEN.search(html):
+            break
+        out, pos = [], 0
+        while True:
+            m = RE_BQ_OPEN.search(html, pos)
+            if not m:
+                out.append(html[pos:])
+                break
+            out.append(html[pos:m.start()])
+            depth, q = 1, m.end()
+            while depth > 0:
+                no = RE_BQ_OPEN.search(html, q)
+                nc = RE_BQ_CLOSE.search(html, q)
+                if not nc:
+                    q = len(html)
+                    break
+                if no and no.start() < nc.start():
+                    depth += 1
+                    q = no.end()
+                else:
+                    depth -= 1
+                    q = nc.end()
+            pos = q
+        html = "".join(out)
+    return html
+
+
 def dedup(records, threshold=0.97, contain=0.95, progress=None):
     """
     两级去重：
