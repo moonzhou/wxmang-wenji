@@ -6,7 +6,7 @@ cascade:
   excludeFromSearch: true   # 隔离：与文集其余部分一致，不进全站搜索
   wx_cat: "答帖"
 groupByYear: true
-showSummary: true
+showSummary: false
 ---
 
 **594 个原帖**，作者答帖合计约 611,271 字，涉及 391 位原帖作者。

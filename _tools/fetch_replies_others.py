@@ -256,7 +256,9 @@ def write_index():
          # 平铺无从定位。置 true 后列表按年份出 h2 分组标题，
          # 且 Hugo 分页本就按年份组切（见主题 _default/list.html），分页边界与年份对齐。
          "groupByYear: true",
-         "showSummary: true",
+         # 不显示摘要：答帖正文首块是「原帖信息卡」引用块，Hugo 的 .Summary
+         # 取不到段落，声明 true 只会给 200 个列表项各产出一个空 div（实测）。
+         "showSummary: false",
          "---",
          "",
          f"**{len(files)} 个原帖**，作者答帖合计约 {chars:,} 字，"
