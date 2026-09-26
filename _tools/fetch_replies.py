@@ -48,14 +48,14 @@ fetch_replies.py —— 抓取论坛楼层的读者讨论与 wxmang 回应，生
    a) 剥 blockquote → 净文本
    b) 净文本**以 `[某人](时间)` 开头** → 按标记切分，只取 wxmang 段（判据 3）
       （必须「开头」，否则会把正文里偶然出现的 `[某某] (日期)` 误当引用切碎）
-   c) 否则若守卫通过 → 净文本即他的话（判据 1 + 2）
+   c) 否则若 `reply_is_wx`（收录开关，见 parse_page）为真 → 净文本即他的话
    d) 否则丢弃
 
-   守卫是 `is_wx(page_author)`。⚠️ 它是**收录范围的开关，不是归属判据**：
-   corpus 里的文章都是 wxmang 本人署名，其页面 REPLY 自然是他的回复，所以
-   这个守卫在本文集内恒为真。但若要扩展到「他人帖中的 wxmang 回复」——
-   实测 594 页 / 5961 块 / 105.8 万字（净约 68.7 万字）——**必须放开它**，
-   否则整批被误挡。清单见 `wxmang-梳理/wxmang在他人帖中的回复-清单.md`。
+   `reply_is_wx` 是**收录范围的开关，不是归属判据**，默认 True。
+   他人帖（`page_author != wxmang`，实测 594 页 / 5961 块 / 净约 68.7 万字）
+   的 REPLY 同样是他的话 —— 因判据 1 与页面署名无关 —— 由
+   `_tools/fetch_replies_others.py` 处理（该脚本输出独立页面，
+   不附属在正文之下）。清单见 `wxmang-梳理/wxmang在他人帖中的回复-清单.md`。
 
 跨来源：同一篇在多个论坛批次各有独立讨论串（实测交集为 0），
 **全部合并**，并按文本指纹去重。
@@ -125,10 +125,19 @@ def split_flat(text):
     return out
 
 
-def parse_page(rec, page_author):
+def parse_page(rec, reply_is_wx=True):
     """把一页的楼层解析成按 DOM 顺序排列的发言流。
 
     返回 [{speaker, time, text, kind}]，kind ∈ {'say', 'reply'}。
+
+    reply_is_wx：本页 `REPLY` 块是否归属 wxmang。
+        **这是收录范围的开关，不是归属判据**（归属判据见文档串判据 1：
+        REPLY 块恒为 wxmang 的发言，与页面署名无关）。
+        - corpus 内的 488 篇（`page_author == wxmang`）：True
+        - 他人帖的 594 页（`page_author != wxmang`）：True —— 实测取证
+          5961 块全部为 wxmang 发言，只是此前被这个开关误挡在门外。
+        默认 True，因为**当前全部已知页面都该收**；留这个参数是为了在
+        发现「REPLY 并非他本人」的页面时，能精确地排除它而非整批放弃。
     """
     h = wxlib.raw_html(rec)
     entries = []
@@ -136,10 +145,11 @@ def parse_page(rec, page_author):
         nu = RE_USER.search(li)
         uname = totext(nu.group(1)) if nu else ""
 
-        # ---- SAY：网友的话（剥嵌套 blockquote + BBCode 引用 + 论坛功能行）----
+        # ---- SAY：网友的话（剥签名档 + 嵌套 blockquote + BBCode 引用 + 功能行）----
         say = RE_SAY.search(li)
         if say:
-            st = wxlib.clean_reply_text(totext(wxlib.strip_blockquotes(say.group(1))))
+            st = wxlib.clean_reply_text(
+                totext(wxlib.strip_blockquotes(wxlib.strip_signature(say.group(1)))))
             if st:
                 flat = split_flat(st)
                 if flat:
@@ -153,14 +163,15 @@ def parse_page(rec, page_author):
                                     "time": ntime(totext(stm.group(1))) if stm else "",
                                     "text": st, "kind": "say"})
 
-        # ---- REPLY：楼主的话（剥掉 blockquote 引用 + 楼层时间）----
+        # ---- REPLY：作者的话（剥掉签名档 + blockquote 引用 + 楼层时间）----
         rep = RE_REPLY.search(li)
         if rep:
             seg = rep.group(1)
             tm = RE_TIME.search(seg)
             rtime = ntime(totext(tm.group(1))) if tm else ""
             net = wxlib.clean_reply_text(
-                totext(RE_TIME.sub("", wxlib.strip_blockquotes(seg))))
+                totext(RE_TIME.sub("", wxlib.strip_blockquotes(
+                    wxlib.strip_signature(seg)))))
             if net:
                 flat = split_flat(net)
                 if flat:                          # 判据 3：扁平流，按标记取
@@ -168,7 +179,7 @@ def parse_page(rec, page_author):
                         if bd:
                             entries.append({"speaker": nm, "time": t2,
                                             "text": bd, "kind": "reply"})
-                elif is_wx(page_author):          # 守卫：在本文集收录范围内的页面（REPLY 恒为 wxmang，见判据 1）
+                elif reply_is_wx:                 # 收录开关（REPLY 恒为 wxmang，见判据 1）
                     entries.append({"speaker": WX, "time": rtime,
                                     "text": net, "kind": "reply"})
     return entries
@@ -264,7 +275,8 @@ def collect(c):
     """
     seen, entries, per_src = set(), [], []
     for s in c["sources"]:
-        e = parse_page(s, c["author"])
+        # corpus 内的文章都是本人署名，收录开关恒为真（见 parse_page 说明）
+        e = parse_page(s, is_wx(c["author"]))
         per_src.append((s, e))
         for x in e:
             k = wxlib.norm(x["text"])

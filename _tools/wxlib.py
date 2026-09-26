@@ -99,9 +99,14 @@ def is_wxmang(rec):
 
 # 论坛功能行 / 导航行：混在回复文本里，不是作者原话。
 #   返回索引页 665 次、链接出处 258 次、通宝推：… 、关键词(Tags): … 、删除
+#   编辑标记（postbit_editedby）1077 处，全库形态唯一：
+#     `(这个帖子最后修改于: 10-08-2011 05:25 PM by wxmang.)`
+#     它落在 REPLY 块内部（</blockquote> 之后、TIME 之前），不过滤就会
+#     出现在「答」的正文里——实测原型 31 处。
 REPLY_JUNK_LINE = re.compile(
     r"^\s*(?:返回索引页|返回列表|链接出处|删除删除|删除"
-    r"|通宝推\s*[:：].*|关键词\(Tags\)\s*[:：].*|\[/?quote[^\]]*\])\s*$"
+    r"|通宝推\s*[:：].*|关键词\(Tags\)\s*[:：].*|\[/?quote[^\]]*\]"
+    r"|\(这个帖子最后修改于[:：].*\)|\(本帖最后由.*\))\s*$"
 )
 
 # BBCode 引用：部分老帖的引用没被转成 <blockquote>，原文留下了 [quote]…[/quote]。
@@ -189,6 +194,19 @@ def strip_blockquotes(html, rounds=6):
             pos = q
         html = "".join(out)
     return html
+
+
+# 签名档：网友的固定尾签，每帖都带。实测全库 391 处，**全部落在 SAY（网友段）**，
+# 0 处落进 REPLY——即不会污染「答」，但会让「问」显得臃肿（同一网友每帖重复一遍）。
+# 有明确的 HTML 注释标记，可精确剥离，零误伤。
+RE_SIGNATURE = re.compile(
+    r"<!--\s*start:\s*postbit_signature\s*-->.*?<!--\s*end:\s*postbit_signature\s*-->",
+    re.S | re.I)
+
+
+def strip_signature(html):
+    """剥掉网友的固定签名档（位于 SAY 内）。"""
+    return RE_SIGNATURE.sub(" ", html)
 
 
 def dedup(records, threshold=0.97, contain=0.95, progress=None):
