@@ -1,5 +1,5 @@
 ---
-title: "{求教贴}请mang总解惑：职业选择（答帖）"
+title: "{求教贴}请mang总解惑：职业选择"
 slug: "求教贴请mang总解惑职业选择"
 url: "/wxmang/replies/求教贴请mang总解惑职业选择/"
 date: 2012-03-18

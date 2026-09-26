@@ -1,5 +1,5 @@
 ---
-title: "wxmang 一篇可以用来观察中国民营企业发展的研究报告（答帖）"
+title: "wxmang 一篇可以用来观察中国民营企业发展的研究报告"
 slug: "wxmang一篇可以用来观察中国民营企业发展的研究报告"
 url: "/wxmang/replies/wxmang一篇可以用来观察中国民营企业发展的研究报告/"
 date: 2015-03-23

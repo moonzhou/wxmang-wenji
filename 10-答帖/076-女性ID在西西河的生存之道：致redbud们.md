@@ -1,5 +1,5 @@
 ---
-title: "女性ID在西西河的生存之道：致redbud们（答帖）"
+title: "女性ID在西西河的生存之道：致redbud们"
 slug: "女性ID在西西河的生存之道致redbud们"
 url: "/wxmang/replies/女性ID在西西河的生存之道致redbud们/"
 date: 2010-12-02

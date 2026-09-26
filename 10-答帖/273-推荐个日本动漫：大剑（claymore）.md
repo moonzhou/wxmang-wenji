@@ -1,5 +1,5 @@
 ---
-title: "推荐个日本动漫：大剑（claymore）（答帖）"
+title: "推荐个日本动漫：大剑（claymore）"
 slug: "推荐个日本动漫大剑claymore"
 url: "/wxmang/replies/推荐个日本动漫大剑claymore/"
 date: 2011-12-24

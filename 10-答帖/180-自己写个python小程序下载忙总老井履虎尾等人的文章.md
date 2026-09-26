@@ -1,5 +1,5 @@
 ---
-title: "自己写个python小程序下载忙总老井履虎尾等人的文章（答帖）"
+title: "自己写个python小程序下载忙总老井履虎尾等人的文章"
 slug: "自己写个python小程序下载忙总老井履虎尾等人的文章"
 url: "/wxmang/replies/自己写个python小程序下载忙总老井履虎尾等人的文章/"
 date: 2011-09-22

@@ -1,5 +1,5 @@
 ---
-title: "请教忙总 如何看功能安全规范functional safety（答帖）"
+title: "请教忙总 如何看功能安全规范functional safety"
 slug: "请教忙总如何看功能安全规范functionalsafety"
 url: "/wxmang/replies/请教忙总如何看功能安全规范functionalsafety/"
 date: 2015-10-08

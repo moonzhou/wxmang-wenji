@@ -1,5 +1,5 @@
 ---
-title: "忙总（wxmang）小记（答帖）"
+title: "忙总（wxmang）小记"
 slug: "忙总wxmang小记"
 url: "/wxmang/replies/忙总wxmang小记/"
 date: 2014-12-05

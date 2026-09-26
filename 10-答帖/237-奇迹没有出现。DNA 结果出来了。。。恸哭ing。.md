@@ -1,5 +1,5 @@
 ---
-title: "奇迹没有出现。DNA 结果出来了。。。恸哭ing。（答帖）"
+title: "奇迹没有出现。DNA 结果出来了。。。恸哭ing。"
 slug: "奇迹没有出现DNA结果出来了恸哭ing"
 url: "/wxmang/replies/奇迹没有出现DNA结果出来了恸哭ing/"
 date: 2011-12-01

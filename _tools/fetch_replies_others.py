@@ -128,7 +128,10 @@ def build_md(host, entries, slug, url, n):
     speakers = {e["speaker"] for e in others}
     p = []
     p.append("---")
-    p.append(f'title: "{host["host_title"]}（答帖）"')
+    # 标题不加「（答帖）」后缀：整站只有本栏目产出答帖页，栏目名与页首
+    # 原帖信息卡已足够标识性质；594 条列表里逐条缀后缀是纯噪声。
+    # 原名保存在 host_title 字段，未丢失。
+    p.append(f'title: "{host["host_title"]}"')
     p.append(f'slug: "{slug}"')
     p.append(f'url: "{url}"')
     p.append(f'date: {src0.get("page_date") or "2005-01-01"}')
@@ -249,7 +252,10 @@ def write_index():
          "cascade:",
          "  excludeFromSearch: true   # 隔离：与文集其余部分一致，不进全站搜索",
          '  wx_cat: "答帖"',
-         "groupByYear: false",
+         # 按年份分节：594 篇跨 2005-2019，且高度不均（2011 占 195、2015 占 134），
+         # 平铺无从定位。置 true 后列表按年份出 h2 分组标题，
+         # 且 Hugo 分页本就按年份组切（见主题 _default/list.html），分页边界与年份对齐。
+         "groupByYear: true",
          "showSummary: true",
          "---",
          "",
@@ -259,6 +265,8 @@ def write_index():
          "这里收录的是 **wxmang 在别人帖子下的答帖**——他作为网友参与讨论的发言，",
          "不是他的独立文章。每页对应一个原帖（标明原作者与链接），下挂他的全部回复，",
          "并保留他所回应的读者发言作为语境。",
+         "",
+         "列表按**年份倒序**排列（同年内按日期倒序）。",
          "",
          "> 本页由 `_tools/fetch_replies_others.py` 自动生成，请勿手工编辑。",
          ""]

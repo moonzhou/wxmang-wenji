@@ -1,5 +1,5 @@
 ---
-title: "Aldi的故事(上)（答帖）"
+title: "Aldi的故事(上)"
 slug: "Aldi的故事上"
 url: "/wxmang/replies/Aldi的故事上/"
 date: 2010-11-06

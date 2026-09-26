@@ -1,5 +1,5 @@
 ---
-title: "【wxmang 新帖】中国水泥工业情况简介（答帖）"
+title: "【wxmang 新帖】中国水泥工业情况简介"
 slug: "wxmang新帖中国水泥工业情况简介"
 url: "/wxmang/replies/wxmang新帖中国水泥工业情况简介/"
 date: 2011-11-02

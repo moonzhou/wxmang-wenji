@@ -1,5 +1,5 @@
 ---
-title: "【wxmang 新帖】贫在路边无人问，富在深山有远亲（答帖）"
+title: "【wxmang 新帖】贫在路边无人问，富在深山有远亲"
 slug: "wxmang新帖贫在路边无人问富在深山有远亲"
 url: "/wxmang/replies/wxmang新帖贫在路边无人问富在深山有远亲/"
 date: 2011-11-02

@@ -1,5 +1,5 @@
 ---
-title: "酸菜鲶鱼(catfish)（答帖）"
+title: "酸菜鲶鱼(catfish)"
 slug: "酸菜鲶鱼catfish"
 url: "/wxmang/replies/酸菜鲶鱼catfish/"
 date: 2011-08-17

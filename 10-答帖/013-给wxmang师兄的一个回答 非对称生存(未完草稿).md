@@ -1,5 +1,5 @@
 ---
-title: "给wxmang师兄的一个回答: 非对称生存(未完草稿)（答帖）"
+title: "给wxmang师兄的一个回答: 非对称生存(未完草稿)"
 slug: "给wxmang师兄的一个回答非对称生存未完草稿"
 url: "/wxmang/replies/给wxmang师兄的一个回答非对称生存未完草稿/"
 date: 2009-08-16

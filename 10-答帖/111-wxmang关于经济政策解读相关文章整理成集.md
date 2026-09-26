@@ -1,5 +1,5 @@
 ---
-title: "wxmang关于经济政策解读相关文章整理成集（答帖）"
+title: "wxmang关于经济政策解读相关文章整理成集"
 slug: "wxmang关于经济政策解读相关文章整理成集"
 url: "/wxmang/replies/wxmang关于经济政策解读相关文章整理成集/"
 date: 2011-07-21

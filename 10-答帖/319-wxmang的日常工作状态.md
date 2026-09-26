@@ -1,5 +1,5 @@
 ---
-title: "wxmang的日常工作状态（答帖）"
+title: "wxmang的日常工作状态"
 slug: "wxmang的日常工作状态"
 url: "/wxmang/replies/wxmang的日常工作状态/"
 date: 2012-02-20

@@ -1,5 +1,5 @@
 ---
-title: "I'm not made that way（答帖）"
+title: "I'm not made that way"
 slug: "Imnotmadethatway"
 url: "/wxmang/replies/Imnotmadethatway/"
 date: 2010-11-09

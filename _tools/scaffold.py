@@ -48,17 +48,16 @@ def dir_safe(name):
     return tx.dir_safe(name)
 
 
-def date_range_of(dirpath):
-    """扫描目录下 md 的 date 字段，返回 (最早日期, 最晚日期, 篇数)。
+def year_hist_of(dirpath):
+    """扫描目录下 md 的 date 字段，返回 (年份直方图, 有日期的篇数)。
 
     专给答帖（10-答帖/）用：答帖以「原帖」为单位，不属于 corpus
-    （corpus 只收 wxmang 的独立文章），但它跨的年份要写进文集首页，
-    故单独扫目录取，而不是硬编码。
+    （corpus 只收 wxmang 的独立文章），但其年份分布要并进首页的
+    「文章年份分布」表，故单独扫目录取，而不是硬编码。
     """
-    lo = hi = None
-    n = 0
+    hist = collections.Counter()
     if not os.path.isdir(dirpath):
-        return (None, None, 0)
+        return (hist, 0)
     for f in sorted(os.listdir(dirpath)):
         if not f.endswith(".md") or f == "_index.md":
             continue
@@ -66,22 +65,18 @@ def date_range_of(dirpath):
             head = io.open(os.path.join(dirpath, f), encoding="utf-8").read(600)
         except OSError:
             continue
-        m = re.search(r'^date:\s*["\']?(\d{4}-\d{2}-\d{2})', head, re.M)
-        if not m:
-            continue
-        d = m.group(1)
-        n += 1
-        lo = d if lo is None or d < lo else lo
-        hi = d if hi is None or d > hi else hi
-    return (lo, hi, n)
+        m = re.search(r'^date:\s*["\']?(\d{4})', head, re.M)
+        if m:
+            hist[m.group(1)] += 1
+    return (hist, sum(hist.values()))
 
 
 def main():
     corpus = json.load(io.open(os.path.join(META, "corpus.json"), encoding="utf-8"))
     total = len(corpus)
 
-    # 答帖不属于 corpus，其年份区间单独扫目录取
-    rep_lo, rep_hi, rep_n = date_range_of(os.path.join(REPO, "10-答帖"))
+    # 答帖不属于 corpus，其年份分布单独扫目录取
+    rep_hist, rep_n = year_hist_of(os.path.join(REPO, "10-答帖"))
 
     # ---- 先定系列归属 ----
     # 系列归属由 taxonomy.SERIES_CAT 人工登记；未登记的系列回落为该系列
@@ -117,8 +112,10 @@ def main():
     # 不再附加 Hugo 自动生成的子页面列表——那一层列的是「栏目」而非文章，
     # 还会把答帖、整理原则与 9 大类混在一起按年分组。故改用专用 layout 渲染。
     dates = sorted(c["date"] for c in corpus)
-    span_lo = min([dates[0][:10]] + ([rep_lo] if rep_lo else []))[:4]
-    span_hi = max([dates[-1][:10]] + ([rep_hi] if rep_hi else []))[:4]
+    # 年份并集（独立文章 ∪ 答帖）——简介区间与年份表共用这个全集
+    year_hist = collections.Counter(c["date"][:4] for c in corpus)
+    years_all = sorted(set(year_hist) | set(rep_hist))
+    span_lo, span_hi = years_all[0], years_all[-1]
 
     L = []
     L.append("---")
@@ -131,9 +128,10 @@ def main():
     L.append('layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染正文')
     L.append("---")
     L.append("")
+    rep_yr = f"{min(rep_hist)}–{max(rep_hist)}" if rep_hist else "无"
     L.append(f"这里收录 **{span_lo}–{span_hi}** 年间 wxmang 公开的文字："
              f"独立文章 **{total}** 篇（{dates[0][:4]}–{dates[-1][:4]}），"
-             f"另有 **{rep_n}** 个原帖下的答帖（{rep_lo[:4]}–{rep_hi[:4]}）。")
+             f"另有 **{rep_n}** 个原帖下的答帖（{rep_yr}）。")
     L.append("")
     L.append("## 说明")
     L.append("")
@@ -166,16 +164,18 @@ def main():
         first = min(x["date"] for x in v)
         L.append(f"- [{s}](/wxmang/{cslug}/{sslug}/)（{len(v)} 篇，始于 {first[:4]}）")
     L.append("")
-    L.append("## 文章年份分布")
+    L.append("## 年份分布")
     L.append("")
-    L.append(f"下表为 **{total}** 篇独立文章的年份分布；答帖（{rep_lo[:4]}–{rep_hi[:4]}）"
-             f"以原帖为单位，未纳入此表。")
+    L.append(f"下表并列 **{total}** 篇独立文章与 **{rep_n}** 个答帖页。"
+             f"答帖以原帖为单位，年份取自原帖首发日期；「—」表示该年无内容。")
     L.append("")
-    y = collections.Counter(c["date"][:4] for c in corpus)
-    L.append("| 年份 | 篇数 |")
-    L.append("| --- | --- |")
-    for k in sorted(y):
-        L.append(f"| {k} | {y[k]} |")
+    L.append("| 年份 | 独立文章 | 答帖 |")
+    L.append("| --- | --- | --- |")
+    for k in years_all:
+        a = year_hist.get(k)
+        b = rep_hist.get(k)
+        L.append(f"| {k} | {a or '—'} | {b or '—'} |")
+    L.append(f"| **合计** | **{total}** | **{rep_n}** |")
     L.append("")
     L.append("> 本页由 `_tools/scaffold.py` 依据 `_meta/corpus.json` 自动生成，请勿手工编辑。")
     write(os.path.join(REPO, "_index.md"), "\n".join(L))

@@ -1,5 +1,5 @@
 ---
-title: "报道，追随忙总wxmang而来（答帖）"
+title: "报道，追随忙总wxmang而来"
 slug: "报道追随忙总wxmang而来"
 url: "/wxmang/replies/报道追随忙总wxmang而来/"
 date: 2011-07-27

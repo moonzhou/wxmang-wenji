@@ -1,5 +1,5 @@
 ---
-title: "wxmang 提及或推荐书籍一览（答帖）"
+title: "wxmang 提及或推荐书籍一览"
 slug: "wxmang提及或推荐书籍一览"
 url: "/wxmang/replies/wxmang提及或推荐书籍一览/"
 date: 2012-01-17
