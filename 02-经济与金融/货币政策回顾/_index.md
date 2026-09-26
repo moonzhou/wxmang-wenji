@@ -5,8 +5,6 @@ cascade:
   wx_series: "货币政策回顾"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **5 篇**，2010-01-05 至 2012-02-18，属[《经济与金融》](/wxmang/economics/)大类。

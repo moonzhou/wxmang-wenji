@@ -6,8 +6,6 @@ cascade:
   wx_cat: "其他"
 groupByYear: false
 showSummary: true
-pagination:
-  pagerSize: 300
 ---
 
 **120 篇**，2009-07-27 至 2022-01-13。

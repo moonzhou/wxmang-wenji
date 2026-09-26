@@ -158,10 +158,7 @@ def main():
         L.append(f'  wx_cat: "{name}"')
         L.append("groupByYear: false")
         L.append("showSummary: true")
-        # 大类页的列表是「系列页 + 散篇」，全站默认 pagerSize=10 会让
-        # 散篇多的大类（如 01-管理学）翻十几页。放大到一页可容的规模。
-        L.append("pagination:")
-        L.append("  pagerSize: 300")
+        # 同系列页：分页大小见 zmsite 的 config/_default/hugo.toml [pagination]。
         L.append("---")
         L.append("")
         L.append(f"**{len(arr)} 篇**，{dates[0][:10]} 至 {dates[-1][:10]}。")
@@ -195,10 +192,10 @@ def main():
             L.append(f'  wx_series: "{s}"')
             L.append("groupByYear: false")
             L.append("orderByWeight: true   # 系列按顺序读，不按年份分组")
-            # 系列页不分页：系列的意义是「按顺序通读」，翻页会打断它，
-            # 而且带 -qa 的问答页会混进 .Pages 占掉分页配额（见 fetch_replies.py）。
-            L.append("pagination:")
-            L.append("  pagerSize: 500      # 系列一次列全")
+            # ⚠️ 分页**不能**在 front matter 里覆盖：`pagination.pagerSize` 是
+            #    站点配置键，写在这里只会被当成自定义参数（实测 Hugo 0.166
+            #    下 18 篇的系列仍按全站 pagerSize=10 切成 2 页）。
+            #    系列「一次列全」靠 zmsite 侧把 [pagination] pagerSize 调大。
             L.append("---")
             L.append("")
             L.append(f"**{len(v)} 篇**，{ds[0][:10]} 至 {ds[-1][:10]}，"

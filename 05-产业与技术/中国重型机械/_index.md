@@ -5,8 +5,6 @@ cascade:
   wx_series: "中国重型机械"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **6 篇**，2011-11-24 至 2012-02-21，属[《产业与技术》](/wxmang/industry/)大类。

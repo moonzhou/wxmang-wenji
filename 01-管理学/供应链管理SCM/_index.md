@@ -5,8 +5,6 @@ cascade:
   wx_series: "供应链管理SCM"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **5 篇**，2009-08-15 至 2018-12-15，属[《管理学》](/wxmang/management/)大类。

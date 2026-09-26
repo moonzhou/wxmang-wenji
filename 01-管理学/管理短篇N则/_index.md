@@ -5,8 +5,6 @@ cascade:
   wx_series: "管理短篇N则"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **18 篇**，2011-07-10 至 2012-05-14，属[《管理学》](/wxmang/management/)大类。

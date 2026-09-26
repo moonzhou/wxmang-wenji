@@ -5,8 +5,6 @@ cascade:
   wx_series: "职业经理人工作笔记"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **24 篇**，2009-07-08 至 2012-02-15，属[《管理学》](/wxmang/management/)大类。

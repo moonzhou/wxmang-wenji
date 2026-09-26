@@ -5,8 +5,6 @@ cascade:
   wx_series: "我经济政策分析的方法"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **3 篇**，2010-02-03 至 2012-02-16，属[《经济与金融》](/wxmang/economics/)大类。

@@ -5,8 +5,6 @@ cascade:
   wx_series: "春节菜单"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **12 篇**，2010-02-14 至 2021-02-12，属[《生活与美食》](/wxmang/life/)大类。

@@ -6,8 +6,6 @@ cascade:
   wx_cat: "传统文化"
 groupByYear: false
 showSummary: true
-pagination:
-  pagerSize: 300
 ---
 
 **30 篇**，2010-11-17 至 2012-05-20。

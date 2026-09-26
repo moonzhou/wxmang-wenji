@@ -5,8 +5,6 @@ cascade:
   wx_series: "读书笔记"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
-pagination:
-  pagerSize: 500      # 系列一次列全
 ---
 
 **6 篇**，2011-09-03 至 2016-02-14，属[《回忆与随笔》](/wxmang/memoir/)大类。
