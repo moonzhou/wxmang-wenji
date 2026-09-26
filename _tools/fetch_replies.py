@@ -285,6 +285,15 @@ def build_md(c, entries, qa_url, body_url):
     p.append(f'qa_comments: {len(entries)}')
     p.append(f'qa_wxmang: {wx_n}')
     p.append("excludeFromSearch: true   # 隔离：不进全站搜索索引")
+    # ⚠️ 只加 excludeFromSearch 是不够的——Hugo 的 `.Pages` 仍会包含 QA 页，
+    #    系列页用 `.Paginate (.Pages.ByWeight)` 分页时，QA 页会**占掉分页配额**
+    #    却因为它们不是正文而显示为空档（实测：18 篇正文被切成 4 页，
+    #    page/1 只排出 1 篇，page/3 反而列出 10 个 QA 链接）。
+    #    `_build.list: never` 让 QA 页彻底退出列表集合，`render: always`
+    #    保证它仍照常生成 URL（正文页的「读者问答」入口要靠它）。
+    p.append("_build:")
+    p.append("  list: never       # 不进任何列表，不占系列页分页配额")
+    p.append("  render: always    # 但仍生成页面（正文页要链过来）")
     p.append("---")
     p.append("")
     p.append(f'> 作者：wxmang ｜ 本文正文：[《{c["title"]}》]({body_url}) ｜ '

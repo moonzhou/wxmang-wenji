@@ -6,6 +6,8 @@ cascade:
   wx_cat: "产业与技术"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **17 篇**，2011-09-15 至 2016-06-27。

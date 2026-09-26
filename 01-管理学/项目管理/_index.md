@@ -5,6 +5,8 @@ cascade:
   wx_series: "项目管理"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
+pagination:
+  pagerSize: 500      # 系列一次列全
 ---
 
 **4 篇**，2010-01-13 至 2016-08-08，属[《管理学》](/wxmang/management/)大类。

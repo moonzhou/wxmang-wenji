@@ -6,6 +6,8 @@ cascade:
   wx_cat: "生活与美食"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **73 篇**，2009-10-28 至 2021-12-27。

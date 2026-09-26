@@ -5,6 +5,8 @@ cascade:
   wx_series: "遵义名小吃"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
+pagination:
+  pagerSize: 500      # 系列一次列全
 ---
 
 **8 篇**，2010-01-19 至 2011-11-23，属[《生活与美食》](/wxmang/life/)大类。

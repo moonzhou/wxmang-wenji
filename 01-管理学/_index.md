@@ -6,6 +6,8 @@ cascade:
   wx_cat: "管理学"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **115 篇**，2009-07-08 至 2018-12-15。

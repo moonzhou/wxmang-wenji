@@ -6,6 +6,8 @@ cascade:
   wx_cat: "经济与金融"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **43 篇**，2009-07-16 至 2016-03-24。

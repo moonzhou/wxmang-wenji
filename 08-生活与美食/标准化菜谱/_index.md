@@ -5,6 +5,8 @@ cascade:
   wx_series: "标准化菜谱"
 groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
+pagination:
+  pagerSize: 500      # 系列一次列全
 ---
 
 **9 篇**，2011-01-30 至 2011-02-05，属[《生活与美食》](/wxmang/life/)大类。

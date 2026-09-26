@@ -6,6 +6,8 @@ cascade:
   wx_cat: "国际与地缘"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **15 篇**，2009-07-16 至 2017-12-23。

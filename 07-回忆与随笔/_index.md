@@ -6,6 +6,8 @@ cascade:
   wx_cat: "回忆与随笔"
 groupByYear: false
 showSummary: true
+pagination:
+  pagerSize: 300
 ---
 
 **54 篇**，2009-07-22 至 2018-12-13。
