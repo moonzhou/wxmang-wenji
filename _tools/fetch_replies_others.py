@@ -252,13 +252,15 @@ def write_index():
          "cascade:",
          "  excludeFromSearch: true   # 隔离：与文集其余部分一致，不进全站搜索",
          '  wx_cat: "答帖"',
-         # 按年份分节：594 篇跨 2005-2019，且高度不均（2011 占 195、2015 占 134），
-         # 平铺无从定位。置 true 后列表按年份出 h2 分组标题，
-         # 且 Hugo 分页本就按年份组切（见主题 _default/list.html），分页边界与年份对齐。
-         "groupByYear: true",
-         # 不显示摘要：答帖正文首块是「原帖信息卡」引用块，Hugo 的 .Summary
+         # 列表项不显示摘要：答帖正文首块是「原帖信息卡」引用块，Hugo 的 .Summary
          # 取不到段落，声明 true 只会给 200 个列表项各产出一个空 div（实测）。
-         "showSummary: false",
+         # ⚠️ 必须放 cascade 内——列表项模板（partials/article-link/simple.html）
+         # 读的是**子页面**的 .Params.showSummary，放页面级 front matter 无效。
+         "  showSummary: false",
+         # 按年份分节：594 篇跨 2005-2019，且高度不均（2011 占 195、2015 占 134），
+         # 平铺无从定位。置 true 后列表按年份出 h2 分组标题
+         # （此项在页面级生效：list.html 里的 . 是列表页自身）。
+         "groupByYear: true",
          "---",
          "",
          f"**{len(files)} 个原帖**，作者答帖合计约 {chars:,} 字，"
