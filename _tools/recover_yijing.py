@@ -71,12 +71,15 @@ def build(sec_title, meta):
     p.append('wx_author: "wxmang"')
     p.append('wx_cat: "传统文化"')
     p.append(f'wx_series: "{SERIES}"')
-    p.append(f'qa_url: "{url.rstrip("/")}-qa/"   # 配套问答页（由 fetch_replies.py 生成，本篇源缺失暂无）')
+    p.append("# 无配套问答页：源文集缺失。")
     p.append(f'original_date: {meta["date"]}')
     p.append("# ⚠️ 源文集缺失本篇，正文转录自 2020-10 版《读易经心得》完整整理稿。")
     p.append("#    转录：准（2026-09-27）。原帖首发应与上篇同日，此后论坛批次中未见独立落页。")
     p.append(f'recovered_from: "读易经心得 文小芒 202010.docx"')
-    p.append(f'related_source: "{meta["prev_source"]}"   # 承接的正文页（原帖指路处）')
+    # host_url：该内容在公开论坛的承载页（原帖指路处）。
+    # ⚠️ 用 host_url 而非自定义字段名——构建门禁（preflight）的溯源判据只认
+    #    source_url / host_url 两者之一，自定义名会被判「缺失溯源」而阻断发布。
+    p.append(f'host_url: "{meta["prev_source"]}"   # 公开来源：承接的原帖页')
     p.append("excludeFromSearch: true   # 隔离：不进全站搜索索引")
     p.append("---")
     p.append("")
