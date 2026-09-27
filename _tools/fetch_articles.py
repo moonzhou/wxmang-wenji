@@ -141,25 +141,45 @@ def main():
     args = ap.parse_args()
 
     corpus = wxlib.load_meta(os.path.join(REPO, "_meta", "corpus.json"))
+    # 系列归属人工登记优先（见 taxonomy.SERIES_OVERRIDE 的说明）：
+    # corpus 里的 series 来自原论坛「主题分类」，同系列标签并不一致，
+    # 必须在入口处统一覆盖，否则重跑会把已归类的文章又打散回去。
+    for c in corpus:
+        c["series"] = tx.series_of(c["title"], c.get("series"))
     # corpus.json 不含正文，这里现取。
     # 注意取的是 body_from（**最完整**的那一版），不是 sources[0]（最早的那一版）——
     # 搬家版常常丢掉尾部段落，用最早版会把内容截短。
-    for c in corpus:
+
+    # 先按选择器缩小范围，**再**取正文——避免只为某个系列却把 500+ 篇正文
+    # 全部从网络拉一遍（实测全量取正文是本脚本最慢的一步）。
+    def _select():
+        s = corpus
+        if args.series:
+            s = [c for c in s if c["series"] == args.series
+                 and not c.get("body_from", "").startswith("recovered:")]
+        if args.cat:
+            s = [c for c in s if c["category"] == args.cat]
+        if args.ids:
+            want = {int(x) for x in args.ids.split(",")}
+            s = [c for c in s if c["id"] in want]
+        return s
+
+    sel = _select()
+    if not (args.series or args.cat or args.ids or args.all):
+        ap.error("请指定 --series / --cat / --ids / --all 之一")
+
+    # 只对选中篇目取正文；recovered 篇目正文非网络来源，跳过。
+    fetch_pool = corpus if args.all else sel
+    for c in fetch_pool:
+        if c.get("body_from", "").startswith("recovered:"):
+            # 源文集缺失、由 2020 稿补录的篇目（见 _tools/recover_yijing.py）：
+            # 正文不来自论坛页，已在补录脚本里直接落盘，这里跳过网络取正文。
+            c["body_clean"] = c.get("body_clean", "")
+            continue
         src = next((s for s in c["sources"] if s["url"] == c.get("body_from")),
                    c["sources"][0])
         c["body_clean"] = wxlib.clean_body(
             {"url": src["url"], "batch": src["batch"], "page_date": src["date"]})
-
-    sel = corpus
-    if args.series:
-        sel = [c for c in sel if c["series"] == args.series]
-    if args.cat:
-        sel = [c for c in sel if c["category"] == args.cat]
-    if args.ids:
-        want = {int(x) for x in args.ids.split(",")}
-        sel = [c for c in sel if c["id"] in want]
-    if not (args.series or args.cat or args.ids or args.all):
-        ap.error("请指定 --series / --cat / --ids / --all 之一")
 
     # 系列归属与序号
     members = {}
@@ -170,9 +190,14 @@ def main():
     for s, arr in members.items():
         if len(arr) < tx.SERIES_MIN:
             continue
-        arr2 = sorted(arr, key=lambda x: (x["date"], x["id"]))
+        series_dir_of[s] = tx.dir_safe(s)
+        # 有「人工顺序表」的系列（如读《易经》按卦序）优先；
+        # 其余系列仍按发帖日期排——这是原本的默认，不动。
+        if s in tx.SERIES_ORDER:
+            arr2 = sorted(arr, key=lambda x: tx.series_sort_key(s, x))
+        else:
+            arr2 = sorted(arr, key=lambda x: (x["date"], x["id"]))
         for i, x in enumerate(arr2, 1):
-            series_dir_of[s] = tx.dir_safe(s)
             order_of[x["id"]] = i
 
     written, used = [], set()

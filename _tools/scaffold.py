@@ -75,6 +75,11 @@ def main():
     corpus = json.load(io.open(os.path.join(META, "corpus.json"), encoding="utf-8"))
     total = len(corpus)
 
+    # 系列归属人工登记优先——与 fetch_articles.py 同一入口，
+    # 否则这里按上游标签归拢出的树，与正文实际落盘的目录会不一致。
+    for c in corpus:
+        c["series"] = tx.series_of(c["title"], c.get("series"))
+
     # 答帖不属于 corpus，其年份分布单独扫目录取
     rep_hist, rep_n = year_hist_of(os.path.join(REPO, "10-答帖"))
 

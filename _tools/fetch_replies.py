@@ -378,6 +378,10 @@ def main():
 
     corpus = json.load(io.open(os.path.join(REPO, "_meta", "corpus.json"),
                                encoding="utf-8"))
+    # 系列归属人工登记优先（与 fetch_articles.py / scaffold.py 一致）：
+    # corpus 里的 series 来自原论坛「主题分类」，同系列标签并不一致。
+    for c in corpus:
+        c["series"] = tx.series_of(c["title"], c.get("series"))
 
     sel = corpus
     if args.series:
@@ -390,6 +394,11 @@ def main():
     if not (args.series or args.cat or args.ids or args.all):
         ap.error("请指定 --series / --cat / --ids / --all 之一")
 
+    # 补录篇目（源文集缺失、正文来自 2020 稿）没有论坛原始页可抓，跳过。
+    if not args.all:
+        sel = [c for c in sel
+               if not c.get("body_from", "").startswith("recovered:")]
+
     # 与 fetch_articles 一致的系列序号 / slug（保证 -qa 与正文对齐）
     members = {}
     for c in corpus:
@@ -399,7 +408,14 @@ def main():
     for s, arr in members.items():
         if len(arr) < tx.SERIES_MIN:
             continue
-        for i, x in enumerate(sorted(arr, key=lambda y: (y["date"], y["id"])), 1):
+        # ⚠️ 必须与 fetch_articles.py 用**同一套排序**：有「人工顺序表」的系列
+        #    （如读《易经》按卦序）用 series_sort_key，否则问答页编号会与正文错位，
+        #    `-qa` 后缀就对不上正文了。
+        if s in tx.SERIES_ORDER:
+            arr2 = sorted(arr, key=lambda x: tx.series_sort_key(s, x))
+        else:
+            arr2 = sorted(arr, key=lambda y: (y["date"], y["id"]))
+        for i, x in enumerate(arr2, 1):
             order_of[x["id"]] = i
 
     written, empty = [], []

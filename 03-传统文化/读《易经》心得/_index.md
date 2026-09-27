@@ -7,6 +7,6 @@ groupByYear: false
 orderByWeight: true   # 系列按顺序读，不按年份分组
 ---
 
-**44 篇**，2011-07-10 至 2013-07-12，属[《传统文化》](/wxmang/classics/)大类。
+**70 篇**，2011-01-20 至 2013-08-24，属[《传统文化》](/wxmang/classics/)大类。
 
 > 本页由 `_tools/scaffold.py` 自动生成，请勿手工编辑。

@@ -7,7 +7,7 @@ showTableOfContents: true
 layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染正文
 ---
 
-这里收录 **2005–2022** 年间 wxmang 公开的文字：独立文章 **528** 篇（2009–2022），另有 **594** 个原帖下的答帖（2005–2019）。
+这里收录 **2005–2022** 年间 wxmang 公开的文字：独立文章 **530** 篇（2009–2022），另有 **594** 个原帖下的答帖（2005–2019）。
 
 ## 说明
 
@@ -19,15 +19,15 @@ layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染�
 
 | 大类 | 篇数 | 成系列 |
 | --- | --- | --- |
-| [管理学](/wxmang/management/) | 113 | 5 个 |
+| [管理学](/wxmang/management/) | 111 | 5 个 |
 | [经济与金融](/wxmang/economics/) | 43 | 4 个 |
-| [传统文化](/wxmang/classics/) | 75 | 2 个 |
+| [传统文化](/wxmang/classics/) | 81 | 2 个 |
 | [国际与地缘](/wxmang/geopolitics/) | 15 | 0 个 |
 | [产业与技术](/wxmang/industry/) | 17 | 1 个 |
 | [社会与时政](/wxmang/society/) | 21 | 1 个 |
 | [回忆与随笔](/wxmang/memoir/) | 52 | 3 个 |
 | [生活与美食](/wxmang/life/) | 73 | 3 个 |
-| [其他](/wxmang/misc/) | 119 | 2 个 |
+| [其他](/wxmang/misc/) | 117 | 2 个 |
 
 ## 回其他网友答帖
 
@@ -39,7 +39,7 @@ layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染�
 
 ## 系列
 
-- [读《易经》心得](/wxmang/classics/i-ching/)（44 篇，始于 2011）
+- [读《易经》心得](/wxmang/classics/i-ching/)（70 篇，始于 2011）
 - [职业经理人工作笔记](/wxmang/management/notes-of-a-manager/)（24 篇，始于 2009）
 - [管理短篇N则](/wxmang/management/management-essays/)（18 篇，始于 2011）
 - [春节菜单](/wxmang/life/spring-festival-menu/)（12 篇，始于 2010）
@@ -63,7 +63,7 @@ layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染�
 
 ## 年份分布
 
-下表并列 **528** 篇独立文章与 **594** 个答帖页。答帖以原帖为单位，年份取自原帖首发日期；「—」表示该年无内容。
+下表并列 **530** 篇独立文章与 **594** 个答帖页。答帖以原帖为单位，年份取自原帖首发日期；「—」表示该年无内容。
 
 | 年份 | 独立文章 | 答帖 |
 | --- | --- | --- |
@@ -72,7 +72,7 @@ layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染�
 | 2008 | — | 2 |
 | 2009 | 42 | 21 |
 | 2010 | 53 | 58 |
-| 2011 | 127 | 195 |
+| 2011 | 129 | 195 |
 | 2012 | 135 | 124 |
 | 2013 | 15 | — |
 | 2014 | — | 3 |
@@ -83,6 +83,6 @@ layout: "no-list"   # 走 zmsite 的 layouts/_default/no-list.html：只渲染�
 | 2019 | 3 | 2 |
 | 2021 | 5 | — |
 | 2022 | 1 | — |
-| **合计** | **528** | **594** |
+| **合计** | **530** | **594** |
 
 > 本页由 `_tools/scaffold.py` 依据 `_meta/corpus.json` 自动生成，请勿手工编辑。
