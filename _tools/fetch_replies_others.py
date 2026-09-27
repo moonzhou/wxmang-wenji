@@ -246,9 +246,9 @@ def write_index():
         if m2:
             hosts.add(m2.group(1))
     L = ["---",
-         'title: "答帖"',
+         'title: "回其他网友答帖"',
          f'url: "/wxmang/{tx.CATEGORIES[DEST_CAT][1]}/"',
-         'description: "wxmang 在他人帖子下的答帖，以「原帖」为单位成页。"',
+         'description: "wxmang 在其他网友所发主题帖下的回帖，以「原帖」为单位成页。"',
          "cascade:",
          "  excludeFromSearch: true   # 隔离：与文集其余部分一致，不进全站搜索",
          '  wx_cat: "答帖"',
@@ -266,7 +266,7 @@ def write_index():
          f"**{len(files)} 个原帖**，作者答帖合计约 {chars:,} 字，"
          f"涉及 {len(hosts)} 位原帖作者。",
          "",
-         "这里收录的是 **wxmang 在别人帖子下的答帖**——他作为网友参与讨论的发言，",
+         "这里收录的是 **wxmang 在其他网友所发主题帖下的回帖**——他作为网友参与讨论的发言，",
          "不是他的独立文章。每页对应一个原帖（标明原作者与链接），下挂他的全部回复，",
          "并保留他所回应的读者发言作为语境。",
          "",

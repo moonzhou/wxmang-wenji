@@ -149,8 +149,16 @@ def main():
         ser = sum(1 for s, v in tree[cat_dir].items() if s and len(v) >= tx.SERIES_MIN)
         L.append(f"| [{name}](/wxmang/{slug}/) | {len(arr)} | {ser} 个 |")
     L.append("")
-    L.append(f"逐篇清单（含每篇的全部原始链接）见仓库内 `_meta/SOURCES.csv`，"
-             f"按系列分组的完整目录见 `_meta/文集总目录.md`。")
+    L.append("## 回其他网友答帖")
+    L.append("")
+    L.append("与上面 9 个大类**性质不同**，故单列：上面 9 类是 wxmang **自己署名发表的独立文章**；"
+             "本类是他作为网友，**在其他网友所发主题帖下的回帖**，并非他的独立文章。")
+    L.append("")
+    rep_span = f"{min(rep_hist)}–{max(rep_hist)}" if rep_hist else "无"
+    L.append(f"- [回其他网友答帖](/wxmang/replies/) ｜ {rep_n} 个原帖 · {rep_span}")
+    L.append("")
+    L.append("每页对应一个原帖（标明原作者与原帖链接），下挂 wxmang 在该帖下的全部回复，"
+             "并保留他所回应的读者发言作为语境。")
     L.append("")
     L.append("## 系列")
     L.append("")
