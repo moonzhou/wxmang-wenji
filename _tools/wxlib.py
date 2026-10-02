@@ -19,7 +19,29 @@ import json
 import os
 import re
 
-ROOT = "D:/个人网站"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+
+def find_workspace_root(repo=REPO):
+    """向上找「工作区根」——含 wxmang-梳理 目录的那一级。
+
+    为什么要动态找：本项目有**两份** _tools 拷贝且深度不同
+    （源仓 wxmang-wenji/_tools 与 zmsite/content/wxmang/_tools）。
+    写死绝对路径一换机就静默指向不存在的目录（实测 2026-10-03）。
+    兜底顺序：向上找 wxmang-梳理 → 环境变量 WXMANG_WORKSPACE → 仓库的父目录。
+    """
+    d = os.path.dirname(repo)
+    for _ in range(6):
+        if os.path.isdir(os.path.join(d, "wxmang-梳理")):
+            return d
+        parent = os.path.dirname(d)
+        if parent == d:
+            break
+        d = parent
+    return os.environ.get("WXMANG_WORKSPACE") or os.path.dirname(repo)
+
+
+ROOT = find_workspace_root()
 WORK = os.path.join(ROOT, "wxmang-梳理")
 RAW = os.path.join(WORK, "raw")
 META_JSON = os.path.join(WORK, "wxmang-权威元数据.json")

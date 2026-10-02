@@ -39,7 +39,9 @@ import time
 import urllib.request
 from concurrent.futures import ThreadPoolExecutor
 
-ROOT = "D:/个人网站"
+import wxlib  # noqa: E402  同目录公共库；工作区根解析统一放在它里面
+
+ROOT = wxlib.ROOT
 WORK = os.path.join(ROOT, "wxmang-梳理")
 RAW = os.path.join(WORK, "raw")
 SRC_CSV = os.path.join(WORK, "wxmang-文章总清单.csv")

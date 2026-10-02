@@ -14,7 +14,7 @@
 """
 import io, json, os, re, shutil, sys
 
-REPO = r"D:/个人网站/wxmang-wenji"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SERIES_DIR = os.path.join(REPO, "03-传统文化", "读《易经》心得")
 SERIES_SLUG = "i-ching"
 SERIES = "读《易经》心得"

@@ -6,9 +6,12 @@
 """
 import io, json, os, re, sys
 
-REPO = r"D:/个人网站/wxmang-wenji"
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 META = os.path.join(REPO, "_meta", "corpus.json")
-MD2020 = r"D:/download/读易经心得 文小芒 202010.md"
+# 2020 稿原件不在仓库内（当年放在 D:/download/）：补录前需自备，
+# 并用环境变量 WXMANG_YIJING_2020_MD 指向它的新位置。
+MD2020 = os.environ.get("WXMANG_YIJING_2020_MD",
+                        r"D:/download/读易经心得 文小芒 202010.md")
 
 # 待补录：2020稿章节名 -> (站点标题, 首发日期, 承接的正文页 source_url 用于溯源)
 RECOVER = [
